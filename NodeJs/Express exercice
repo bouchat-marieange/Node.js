@@ -1,0 +1,27 @@
+#Exercice 1 
+
+créer un petit projet avec une structure mvc en vous aidant d'express.
+le site doit comprendre :
+
+-une page html avec un formulaire pour écrire le commentaire.
+-une page html avec un article et dessous un cadre ou apparaitra le commentaire. 
+-une page 404
+
+organiser votre projet pour qu'en manipulant l'url on ne puisse arriver que sur les pages citées ci-dessus.
+(int: utilisez la methode "get" fournie par express)
+
+
+#exercice 2 
+
+reprendre la structure du projet précédent afin de créer un site permettant la pubication de commentaires.
+
+- utilisez la methode POST fournie par express
+
+- utiliser la page form afin de pouvoir récupérer les données envoyées par le formulaire dans un fichier json
+
+- utiliser la page commentaire pour récupérer et afficher les commentaires qui sont écrit dans le fichier json.
+
+
+
+(int: utilisez le module "fs")
+
