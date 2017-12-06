@@ -316,10 +316,31 @@ http://localhost:8080/
 Notre serveur fonctionne et peut à présent servir du HTML, nous allons à présent voir comment échanger des informations avec celui-ci grâce aux évènements.
 
 
+## Les évènements
 
+Votre serveur tourne désormais sur le port que vous avez choisi dans server.listen().
 
+Nous allons à présent nous pencher sur les évènements. Vous vous rappellez de addEventListener() en Javascript? Cette fonction sert à exéctuter du script lorsqu'un évènement déclencheur se produit.
 
+En NodeJS, les évènements fonctionnent unpeu de la même manière, à la différence que le sévènements peuvent être créés, configurés et personnalisés selon vos besoins.
 
+Voici par exemple, un évènement existant par défaut dans NodeJS: 
+
+´´´´javascript
+var fs = require('fs');
+var rs = fs.createReadStream('./fichier');
+rs.on('open', function() {
+ console.log('Le fichier est maintenant ouvert!!!');
+});
+´´´´
+
+Dans ce code, en ligne 1, nous importons le module "fs" et à la ligne 2, nous appelons la méthode "createReadStream() de fs sur une nouvelle variable nommées rs.
+
+## Créer ses propres événements
+
+En NodeJS, nous pouvons créer nos propres évènements pour pouvoir exécuter toutes les tâches que l'on veut sur n'importe quel évènement.
+
+Cependant, pour faire cela il faudra importer le module eventes pour que cela fonctionne. si vous avez oubliez comment on fait, voici la commande terminal adéquate, à n'effectuer que dans la racine de votre projet car non globale 
 
 
 
