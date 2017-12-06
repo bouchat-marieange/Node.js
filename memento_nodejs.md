@@ -158,9 +158,84 @@ Pour mettre à jour uniquement tout les paquets de votre projet enlever le -g, u
 npm update
 ```` 
 
+Dans un cas comme dans l'autre, NPM va trouver en ligne, dans une vaste base de données, tous les modules déjà crées auparavant par la communauté de NodeJS. Attention, sans connexion à internet, vous ne pourrez pas faire fonctionner NPM correctement.
+
+Le site https://www.npmjs.com/ est la source depuis laquellet NPM télécharge tous les modules. Vous pourrez également trouvez beaucoup de renseignements sur [la documentation en ligne de npmjs.com](https://docs.npmjs.com/)
+
+#### Quels modules choisir pour son projet
+
+Selon nos besoins et les fonctionnnalités que l'on veut développer ou utiliser, on choisira les modules adaptés. Mais avant d'utiliser les modules, ils faut comprendre ce que sont éxactement les modules.
 
 
+## Les modules
 
+Un module est un fichier contenant plusieurs codes (variables, fonctions, objets, classes, etc...)
+pouvant être appelés dans un autre fichier. Le fonctionnement ressemble à celui des links css ou script jss sur les fichiers html, il y a cependant des différences. Voici comment ca fonctionne.
 
+Tout d'abord, il faut créer une page "app.js" sur laquelle écrire notre code
 
+````javascript
+var sayHelloInEnglish = function() {
+ return "HELLO";
+}
+````
 
+Une fois cela fait, il faut expliquer à l'ordinateur que nous voulons exporter cet élément pour l'utiliser sur une autre page JS, que nous allons appeler ici "use.js".
+
+### L'export
+
+A la fin de votre code ajouter la ligne suivante pour indiquer que l'on veut exporter cet code pour l'utiliser sur la page use.js
+
+````javascript
+module.exports.[nom désiré] = "noms de variable/fonction/etc";
+````
+
+Donc dans notre exemple cela donnera ceci:
+
+````javascript
+var sayHelloInEnglish = function() {
+ return "HELLO";
+}
+module.exports.English= sayHelloInEnglish;
+````
+
+### Require
+
+Maintenant que le module est exporté, il faut l'importer dans use.js pour ce faire, il suffit d'utiliser la méthode "require" dans le fichier use.js qui va aller chercher votre module et le rendre utilisable.
+
+Voici comment faire:
+
+Tout d'abord, la méthode doit être appelée dans une variable afin de pourovir l'utiliser et il faut indiquer la position du module dans la méthode require (comme ddnas le href d'un link css par exemple)
+
+````javascript
+var Something= require("app.js");
+````
+
+Votre fonction est maintenant importée, maintenant pour l'utiliser, il suffit de l'appeler sous le nom de votre require , un point puis, le nom que vous avez donné à votre export (dans notre exemple le Something et le English).
+
+**Pourquoi donner un nom à notre export?**
+
+Très souvent dans les modules, il n'y a pas qu'un seul élèment, il faut donc donner un nom à nos différents éléments pour pouvoir les utiliser, par exemple:
+
+````javascript
+var sayHelloInEnglish= function() {
+ return "HELLO";
+}
+var sayHelloInSpanish= function() {
+ return "Hola";
+}
+module.exports.English= sayHelloInEnglish;
+module.exports.Spanish= sayHelloInSpanish;
+````
+
+Nous avons maintenant deux fonctions dans un seul module, toutes les deux importables et utilisables sous un suele et même require.
+
+````javascript
+var Something= require("app.js");
+console.log(Something.English()); // va nous logger HELLO
+console.log(Something.Spanish()); // va nous logger Hola
+````
+
+### Pour plus d'infos
+
+N'hésitez pas à suivre le [cours de net ninja](https://www.youtube.com/watch?v=xHLd36QoS4k&list=PL4cUxeGkcC9gcy9lrvMJ75z9maRw4byYp&index=6), il est bien fait ! 
