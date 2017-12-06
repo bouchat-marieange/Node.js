@@ -122,6 +122,8 @@ Pour installer un module globalement, on utilise la commande:
 npm install -g create-react-app
 ````
 
+On ouvre le terminal à la racine et on tape cette commande. Cela n'a pas d'importance car le -g indique de toute façon que le module est installé en global et donc que sa portée se fera sur tout les projets et pas uniquement sur le projet en cours dans lequel la commande aura été tapée.
+
 Dans cet exemple, le -g dans la commande indique au manager que l'on souhaite installer un package globalement. Ici on installe le paquet "Create React App" qui permet de générer un projet en React sans devoir trouver les dépendances vous-même, sans devoir écrire tous les fichiers de base qui font fonctionner ce genre d'applications en gagnant du même coup des heures de préparation.
 
 Avantage: on peut utiliser le module create-react-app où l'on veut.
@@ -342,6 +344,11 @@ En NodeJS, nous pouvons créer nos propres évènements pour pouvoir exécuter t
 
 Cependant, pour faire cela il faudra importer le module eventes pour que cela fonctionne. si vous avez oubliez comment on fait, voici la commande terminal adéquate, à n'effectuer que dans la racine de votre projet car non globale 
 
+````code
+npm install events
+````
+A la racine du dossier de notre projet (dans lequel à été créer un sous-dossier node_modules avec un sous-dossier "events"), on va créer un nouveau fichier creer_evenement.js 
+
 ´´´´javascript
 var events = require('events');
 var eventEmitter = new events.EventEmitter();
@@ -366,6 +373,79 @@ L'intérêt de emit() est qu'il peut s'exécuter quand vous le désirez: à l'ap
 
 On peut approfondir ses connaissances et créer des applications de plus en plus complexes en testant et en s'instruisant sur la [documentation NodeJS concernant les évènements](https://nodejs.org/api/events.html) 
 
+
+
+__________________________________________________________________________________________________________
+Chapitre à revoir car pas clair ce qui doit être dans quels fichiers et comment liés les fichiers entre eux. 
+
+## Les WebSocket
+
+Les websockets sont très pratiques car ils permettent de communiquer en temps réel entre la page web et node. Plus besoin de rafraichir la page pour afficher les nouvelles informations. 
+
+La même page peut envoyer des informations sans passer par un formulaire et recevoir des informtions en direct et tout ça en javascript!
+
+Du coté serveur, pour gerer les websocket avec nodeJS vous aurez besoin d'installer le module socket.io avec NPM. Petit rappel voici comment faire. Il est conseillet d'installer socket.io en local dans chaque projet en nécessitant l'usage et non en global pour éviter d'allourdir systematiquement tout les projets avec des modules que l'on utilisera pas systématiquement. Donc on se place dans le dossier de son projet, on ouvre le terminal puis on tape la commande suivante:
+
+````code
+npm install socket.io
+````
+
+Du coté client, pour gére les websocket avec nodeJS vous aurez besoin d'inclure la version client de socket.io sur vos pages web avec le code suivant: Ce code devra être insérer juste avant la balise de fermeture </body> de vos pages html situées à la racine de votre dossier de travail (par exemple: index.html)
+
+**A placer dans la page index.php situé à la racine du dossier de travail:**
+
+````code
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+````
+
+### Fonctionnement de base
+
+Pour initialiser socket io, il ne suffit pas de créer un objet, il faut aussi lui dire d'utiliser le serveur quer vous aurez créer plus haut. Si vous travailler dans une autre dossier, il faut faire un copier coller du contenu du fichier server.js dans un nouveau fichier server.js que l'on place à la racine du dossier de travail.
+
+**A placer dans la page websocket.js" situé à la racine du dossier de travail:**
+
+````javascript
+var io = require('socket.io')(server);
+````
+
+Il faut également que le server soit lié sur un port avant d'utiliser socket.io
+
+````javascript
+server.listen(8080);
+````
+
+Il faut attendre que la connexion websocket soit établieavec la page web avant de recevoir et d'envoyer des données. Pour cela il faudra attendre que l'évènement connections soit enclenché.
+
+````javascript
+io.on('connection', function(socket) {
+});
+´´´´
+
+Pour se connecter coté client: 
+
+````javascript
+var socket = io('http://localhost');
+´´´´
+
+Pour communiquer, socket ido utilise des evenements. On peut d'un coté écouter un évènement et de le l'autre envoyé des messages à ces évènements. On peut créer autatn de type d'évènement que l'on veut mais aussi décider de n'en écouter que certain d'entre eux. 
+
+Pour envoyer un évenement de type bienvenue au client par exemple (côté serveur)
+
+````javascript
+socket.emit("bienvenue","Bonjour ceci est votre 1ere connection");
+´´´´
+
+Et pour le recevoir côté client:
+
+````javascript
+socket.on('bienvenue', function(data) {
+ alert("le serveur nous dit :"+data);
+});
+´´´´
+
+L'inverse est aussi possible, où le client envoye un message et le server écoute.
+
+______________________________________________________________________________________________________
 
 
 

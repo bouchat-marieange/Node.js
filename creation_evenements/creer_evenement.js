@@ -22,3 +22,7 @@ eventEmitter.on('terminal', myEvent);
 // Ce n'est qu'à cette ligne que notre fonction s'exécute et ce n'est que si le emit ('terminal) de la ligne précédente s'éxécute que le on() que nous avons écrit précédement se lance.
 // L'interêt de emit() est qu'il peut s'exécuter quand vous le désirez (à l'appui d'une touche, sur un lien, sur un bouton, etc...)
 eventEmitter.emit('terminal');
+
+
+// Pour voir s'afficher "Vive le terminal" dans le terminal, il faut se placer dans le dossier du projet, ouvrir le terminal puis taper la commande node creer_evenement.js.
+//Nodejs, va alors suivre tout le script qu'il contient, lancer le fichier en allant chercher ses dépendances "events" avec require, puis il va s'éxécuter, on lui a indiquer ce qu'il devait faire myfunction, on lui a envoyé le signal qu'il attendait pour lancer la fonction 'terminal' et on l'éxécute, donc le message s'affiche dans le terminal.
