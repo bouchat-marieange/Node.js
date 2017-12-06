@@ -239,3 +239,87 @@ console.log(Something.Spanish()); // va nous logger Hola
 ### Pour plus d'infos
 
 N'hésitez pas à suivre le [cours de net ninja](https://www.youtube.com/watch?v=xHLd36QoS4k&list=PL4cUxeGkcC9gcy9lrvMJ75z9maRw4byYp&index=6), il est bien fait ! 
+
+
+## Créer un serveur web avec Nodejs
+
+Nous allons apprendre à créer notre propre serveur web grâce à la bibliothèque node, afin de communiquer du contenu à notre navigateur via les modules et méthodes que node nous propose. Bref, mettre des page en ligne avec NodeJS.
+
+### Le module HTTP
+
+Pour commencer, nous aurons besoin de créer un fincier nommé "server.js" et d'y inclure le module "http", qui nous donnera les outils nécessaires,  pour communiquer avec le navigateur via le protocole HTTP (Hyper Text Transfer Protocol):
+
+´´´´javascript
+var http = require("http");
+´´´´
+
+### La methode createServer
+
+Une fois le module "http" inclus dans notre fichier "server.js" nous aurons acccès à la méthode "http.createServer()" qui comme son nom l'indique, nous permettra de créer notre serveur. Cette méthodeva nous passer deux paramètres : les objets request et response (en gros, ce que le serveur va recevoir et ce qu'il va renvoyer) 
+
+´´´´javascript
+var server = http.createServer(function(request, response) {
+});
+´´´´
+
+### Les objets Request et Response
+
+* L'objet "request"nous fournir des informations concernant la requête client tel que son url, les en-têtes HTTP, ...
+
+* L'objet "response" servira à retourner des données comme du texte , du html, un fichier, ...
+
+Le but étant de communiquer du contenu à notre navigateur, ici suel l'objet "resonse" et quelques-unes de ces méthodes vont nous intéresser.
+
+La première étape consistera à appeler la méthode "response.writeHead()" qui va definir le statut de notre requête http ainsi que le type de contenu que l'on souhaite retourner.
+
+Ensuite "response.write()" va tout simplement permettre de concevoir notre document html passé en argument.
+
+Et enfin "response.end()" viendra signifier la fin de notre réponse.
+
+´´´´javascript
+response.writeHead(200, {"Content-Type": "text/html"});
+response.write(`
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>hello node</title>
+ </head>
+ <body>
+  <p>Hello world</p>
+ </body>
+</html>
+`);
+response.end();
+´´´´
+
+### La méthode listen
+
+La dernière méthode appelée dans notre fichier sera "server.listen()", qui va lier notre serveur au port de notre choix. Ici nous utilisons le port 8080 mais libre à vous d'utiliser un autre port afin d'accéder à votre serveur web.
+
+´´´´javascript
+server.listen(8080);
+´´´´
+
+### Démarrer le serveur
+
+Et voilà, il ne nous reste plsu qu'à **démarrer notre serveur via le terminal grâce à la ligne de commande** ci-dessous (en se plaçant bien entendu dans le dossier ou se trouve notre fichier server.js
+
+´´´´javascript
+node server.js
+´´´´
+
+et à admirer notre magnifique message "hello world" en tapant dans notre navigateur l'adresse suivante: 
+
+http://localhost:8080/
+
+Notre serveur fonctionne et peut à présent servir du HTML, nous allons à présent voir comment échanger des informations avec celui-ci grâce aux évènements.
+
+
+
+
+
+
+
+
+
