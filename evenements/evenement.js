@@ -2,7 +2,7 @@
 var fs = require('fs');
 
 // on appelle la méthode "createReadStream()" contenu dans le module fs que l'on stocke dans une nouvelle variable appellée rs
-var rs = fs.createReadStream('./fichier');
+var rs = fs.createReadStream('./fichier.txt');
 
 // on utilise rs comme un objet pour y exécuter on() avec en premier paramètre open.
 // Ce on() va nous permettre d'éxécuter un script, une fonction.

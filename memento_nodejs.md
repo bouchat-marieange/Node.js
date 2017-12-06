@@ -342,5 +342,31 @@ En NodeJS, nous pouvons créer nos propres évènements pour pouvoir exécuter t
 
 Cependant, pour faire cela il faudra importer le module eventes pour que cela fonctionne. si vous avez oubliez comment on fait, voici la commande terminal adéquate, à n'effectuer que dans la racine de votre projet car non globale 
 
+´´´´javascript
+var events = require('events');
+var eventEmitter = new events.EventEmitter();
+// Creation de l'évenement
+var myEvent = function() {
+ console.log('Vive le terminal');
+}
+// Application de l'événement à un cas
+eventEmitter.on('terminal', myEvent);
+// Lance l'évenement "aimeTerminal"
+eventEmitter.emit('terminal');
+´´´´
+
+En ligne 1, nous avons importé le module "events" dans notre script avec un require()
+En ligne 2, nous avons créerun objet evnetEmitter qui perttra de faire fonctionner nos évènements
+En ligne 4, nous créons une fonction myEvent() que l'on voudra déclencher sur évènement.
+En ligne 8, on lance notre fonction lorsque l'objet eventEmitter reçoit le signal 'terminal'. L'objet écoute, ou attend, de recevoir ce signal. En deuxième paramètre de on(), on indique la commande qui dois se déclencher, en l'ocurrence il s'agit ici de la fonction myEvent().
+
+En ligne 10, notre fonction s'exécute. Ce n'est que si le emit ('terminal') de la ligne 10 s'exécute que le on() que nous avons écrit en ligne 8 se lancera.
+
+L'intérêt de emit() est qu'il peut s'exécuter quand vous le désirez: à l'appui d'une touche, sur un lien, sur un bouton, etc ...
+
+On peut approfondir ses connaissances et créer des applications de plus en plus complexes en testant et en s'instruisant sur la [documentation NodeJS concernant les évènements](https://nodejs.org/api/events.html) 
+
+
+
 
 
