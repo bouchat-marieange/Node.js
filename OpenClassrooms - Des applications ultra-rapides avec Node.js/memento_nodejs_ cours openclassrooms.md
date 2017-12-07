@@ -512,3 +512,239 @@ Pour déterminer le nom de la page appelée par le visiteur...
 * Il faut parser l'url à la main (v)
 * Il faut appeler la variable $_ PAGE
 Node.js est très bas niveau : on récupère l'URL qu'on doit ensuite parser grâce à plusieurs méthodes, pour déterminer le nom de la page réclamée par le visiteur.
+
+
+## Les évènements
+
+Node.js est un environnement de développement JavaScript basé sur les évènements. Node.js ne peut utiliser qu'un seul thread (lancer un seul processus) mais aucune opération n'est bloquante. Ainsi les opérations un peu longues (chargement de fichier, téléchargement d'un page web, démarrage d'un serveur web, ...) sont lancées en tâche de fond et **une fonction de callback est appelée quand l'opération est terminée.**
+
+![Node.js - fonctionnement](https://user.oc-static.com/files/421001_422000/421157.png)
+
+Les évènements sont à la base du fonctionnement de Node.js. C'est ce qui fait la puissance de Node.js mais qui le rend aussi un peu plus difficile à appréhender car cela implique d'utiliser de nombreuses fonctions de callback.
+
+Nous allons maintenant rentrer dans les détails du fonctionnement des évènements Node.js. Nous allons voir en particulier comment on peut "écouter" et "créer" des évènements.
+
+### Ecouter des évènements
+
+Si vous avez déja utiliser JQuery vous avez déja écouter des évènements par exemple lorsque vous écriver le code:
+
+````javaScript
+$("canvas").on("mouseleave", function() { ... });
+````
+
+Dans ce genre d'instruction, vous demandez à éxécuter une fonction de callbakc quand la souris sort d'un élement <canvas> de la page. On dit que vous attachez l'évènement au DOM de la page.
+
+Avec Node.js, le principe est exactement le même. **Un très grand nombre d'objets Node.js émettent des évènements. Leur particularité est qu'il s héritent tous d'un objet EventEmitter fourni par Node.**
+
+Prenons par exemple le module "http" que nous avons utilisé pour créer notre serveur web. Il comprend un objet Server qui émet des évènements d'après la doc:
+
+![doc http](https://user.oc-static.com/files/421001_422000/421286.png)
+
+Si on veut écouter ces évènements, par exemple "close" qui survient quand le serveur est arrêter. Il suffit de faire appel à la méthode on() et d'indiquer:
+
+* Le nom de l'évènement que vous écoutez (ici "close")
+* La fonction de callback à appeler quand l'évènement survient
+
+On obtiendra ainsi le code suivant pour l'évènement close:
+
+````javaScript
+server.on('close', function() {
+    // Faire quelque chose quand le serveur est arrêté
+})
+````
+
+Voici un exemple complet et concret. On va lancer un serveur et l'arrêter jsute après. On écoute l'évènement close qui survient lorsque le serveur est arrêter. On affiche un message dans al console quand le serveur s'apprête à s'arrêter.
+
+````javaScript
+var http = require('http');
+
+var server = http.createServer(function(req, res) {
+  res.writeHead(200);
+  res.end('Salut tout le monde !');
+});
+
+server.on('close', function() { // On écoute l'évènement close
+    console.log('Bye bye !');
+})
+
+server.listen(8080); // Démarre le serveur
+
+server.close(); // Arrête le serveur. Déclenche l'évènement close
+````
+Affichera dans la console
+
+````code
+user@nb25:~/Desktop/html/Node.js/Test OC$ node close_server.js
+Bye bye !
+````
+
+Mais au fait ... createServer() comprend une fonction de callback aussi. Pourquoi on n'utilise pas on() ici?
+
+En fait c'est une contraction de code. Lorsque que l'on lit ala doc de createServer() (https://nodejs.org/api/http.html#http_http_createserver_requestlistener): celle-ci nous indique que la fonction de callback qu'on lui envoie en paramètre est automatiquement ajoutée à l'évèenemnent "request"!
+
+````code
+The requestListener is a function which is automatically added to the 'request' event.
+````
+
+Donc ce code:
+
+````javascript
+var server = http.createServer(function(req, res) { });
+````
+
+... puet être réécrit comme ceci de façon plus détaillée:
+
+````javascript
+// Code équivalent au précédent
+var server = http.createServer();
+server.on('request', function(req, res) { });
+````
+
+Bref, les évènements sont partout, on ne peut pas y échapper! Certains sont simplement un peu "masqués" comme c'est le cas ici, mais il est important de savoir ce qui se passe derrière.
+
+Vous pouvez écouter plusieurs fois un même évènement. Faites deux fois appel à la fonction on() pour le même évènement: les deux fonctions de callback seront appelées quand l'évènement aura lieu.
+
+### Emettre des évènements
+
+Si vous voulez émettre des évènements vous aussi, c'est très simple: incluez le module EventEmittter et créez un objet basé sur EventEmittter
+
+````javascript
+var EventEmitter = require('events').EventEmitter; //On inclut le module EventEmitter en oubliant pas de spécifié un paramètre qui décrit l'évènement qui déclenchera l'action.
+
+var jeu = new EventEmitter(); // Création d'un objet basé sur EventEmitter stocké dans la variable jeu
+````
+
+Ensuite pour émettre un évènement dans votre code, il suffit de faire appel à emit() depuis votre objet basé sur EventEmmmiter. Indiquez:
+
+*  Le nom de l'évènement que vous voulez générer (ex: "gameover"). A vous de le choisir.
+* un ou plusieurs éventuels paramètres à passer (facultatif)
+
+Ici, on génère un évènement "gameover" et j'envoie un message à celui qui réceptionnera l'évènement via un paramètre:
+
+````javaScript
+jeu.emit('gameover', 'Vous avez perdu !');
+````
+
+Celui qui veut écouter l'évènement doit faire ensuite:
+
+````javaScript
+jeu.on('gameover', function(message) { });
+````
+
+Voici le code complet pour tester l'émission d'évènements:
+
+````javaScript
+var EventEmitter = require('events').EventEmitter;
+
+var jeu = new EventEmitter();
+
+jeu.on('gameover', function(message){
+    console.log(message);
+});
+
+jeu.emit('gameover', 'Vous avez perdu !');
+````
+
+La console affiche alors ceci:
+
+````code
+user@nb25:~/Desktop/html/Node.js/Test OC$ node emission_evenement.js
+Vous avez perdu !
+````
+Bon j'admets, c'est un peu trop simple. Ce code se contente d'émettre un évènement. Dans la réalité, les évènements seront émis depuis des fonctions imbriquées dans d'autres fonctions, et c'est de là que Node.js tire toute sa richesse. Mais le principe reste le même!
+
+N'oubliez pas que vous pouvez envoyer autant de paramètres que nécessaire à la fonction de callback. Emettez simplement plus de paramètres:
+
+````javaScript
+jeu.emit('nouveaujoueur', 'Mario', 35); // Envoie le nom d'un nouveau joueur qui arrive et son âge
+````
+
+## Les modules Node.js et NPM
+
+Le noyau de Node.js est tout petit et ne sait en fait pas faire grand chose. Pourtant, Node.js eset très riche grâce à sont extensabilité. Cest extensions de Node.js sont appellés modules.
+
+Il existe des milliers de modules qui offrent des fonctionnalités variées : de la gestion de fichiers uploadés à la connexion aux bases de données MySQL ou à Redis, en passant par des framworks, des systèmes de templates et la gestion de la communication temps réel avec le visiteur! Il y a à peu près tout ce dont on peut rêver et de nouveaux modules apparaissent chaque jour.
+
+Nous allons voir comment sont gérés les modules par Node.js et nous verrons que nous pouvons facilement en créer nous aussi. Nous découvrirons NPM (Node Package Manager) qui est un outil indispensable quie vous permet de télécharger facilement touts les modules de la communauté Node.js. Et enfin, nous apprendrons à publier un module sur NPM.
+
+### Créer des modules
+
+Dans cette ligne, placé au tout début de notre premier code, on à fait appel à la bibliothèque "http" de Node.js (ou devrais-je dire au module "http")
+
+Quand on fait appel à un module, Node.js va chercher sur notre disque un fichier appelé http.js ou url.js si on appelle le module url. Ces fichiers, ont ne les voient pas car ils font partie du noyau de Node.js, ils sont tout le temps disponibles.
+
+Les modules sont donc de simples fichiers.js. Si nous voulons créer un module, disons le module "test1", nous devons créer une fichier test1.js dans le même dossier que notre fichier principal par exemple appli.js  et y faire appel comme ceci:
+
+````JavaScript
+var test = require('./test1'); // Fait appel à test1.js (même dossier)
+````
+Attention: Il ne faut pas mettre l'extension .js dans le require()
+
+C'est un chemin relatif. Si le module se trouve dans le dossier parent, nous pouvons l'inclure comme ceci:
+
+````JavaScript
+var test = require('../test'); // Fait appel à test.js (dossier parent)
+````
+
+On peut également ne pas mettre de chemin relatif et juste faire require('test'). Il faut alors mettre votre fichier test1.js dans une sous-dossier appelé "node_modules". C'est une convention Node.js:
+
+````JavaScript
+var test = require('test'); // Fait appel à test.js (sous-dossier node_modules)
+````
+
+En résumé
+
+![](https://user.oc-static.com/files/421001_422000/421271.png)
+
+
+Notez que si le dossier node_modules n'existe pas, Node.js ira chercher un dossier qui a le même nom plus haut dans l'arborescence. Ainsi, si votre projet se trouve dans le dossier:
+/home/mateo21/dev/nodejs/projet, il ira chercher un dossier nommé :
+
+* /home/mateo21/dev/nodejs/projet/node_modules, et si ce dossier n'existe pas il ira le chercher dans...
+* ... /home/mateo21/dev/nodejs/node_modules, et si ce dossier n'existe pas il ira le chercher dans...
+* ... /home/mateo21/dev/node_modules, et ainsi de suite !
+
+### Les fichiers;js des modules
+
+Les fichiers;js des modules sont composé de code JavaScript tout ce qu'il y a de plus classique. Vous y créez des fonctions. Une seule particularité, **vous devez "exporter" les fonctions que vous voulez que d'autres personnes puissent réutiliser.**
+
+Nous allons tester cela dans une module qui dit "Bonjour !" et "Bye bye !" . Créez une fichier monmodule.js avec le code suivant:
+
+````javascript
+var direBonjour = function() {
+    console.log('Bonjour !');
+}
+
+var direByeBye = function() {
+    console.log('Bye bye !');
+}a
+
+exports.direBonjour = direBonjour;
+exports.direByeBye = direByeBye;
+````
+
+Le début du fichier ne contient rien de nouveau. Nous créons des fonctions que nous plaçons dans des variables. D'où le `var direBonjour = function()`...
+
+Ensuite, et c'est la nouveauté, nous exportons ces fonctions pour qu'elles soient utilisables de l'extérieur: `exports.direBonjour = direBonjour;`. Le nom que l'on donne ici sera celui utiliser pour appeler cette fonction dans les fichiers externes, veillez donc à lui donner un nom évocateur et clair. Notez d'ailleurs qu'on aurait aussi pu faire directement :
+
+````javascript
+exports.direBonjour = function() { ... };
+````
+
+**Attention:** toutes les fonctions que vous n'exportez pas dans votre fichier de module resteront privées. Elle sne pourront pas être appelées de l'extérieur.
+En revanche, elles pourront tout à fait être utilisées par d'autres fonctions de votre module.
+
+````javascript
+var monmodule = require('./monmodule');
+
+monmodule.direBonjour();
+monmodule.direByeBye();
+````
+require() renvoie en fait un objet qui contient les fonctions que vous avez exportées dand votre module. Nous stockons cet objet dans uen variable du même nom `monmodule` (mais on aurait pu aussi lui donner n'importe quel autre nom)
+
+![Exportation d'une fonction](https://user.oc-static.com/files/421001_422000/421272.png)
+
+Tous les modules de Node.js sont basés sur ce principe très simple. Cela vous permet de découper votre projet en plusieurs petits fichiers pour répartir les rôles.
+
+
+## Utiliser NPM pour installer des modules
