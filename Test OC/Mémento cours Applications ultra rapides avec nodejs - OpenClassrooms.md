@@ -43,7 +43,7 @@ console.log("Je fais d'autres choses en attendant...");
 
 La fonction callback, comme toute fonction n'est exécutée que lorsqu'elle est appelée, c'est le cas au moment ou le fichier est téléchargé, la fonction callback est alors exécutée.
 
-Cette manière de coder un peu particulière devient très intéressante si par exemple on vuet télécharger puis afficher 2 fichiers. Le code sera alors:
+Cette manière de coder un peu particulière devient très intéressante si par exemple on veut télécharger puis afficher 2 fichiers. Le code sera alors:
 
 ````javascript
 var callback = function (error, response, body) {
@@ -304,7 +304,7 @@ Pourquoi en chargeant la page d'acceuil, je vois /favicon.ico?
 
 La plupart des navigateurs font en réalité une seconde requête pour récupérer l'icône du site (la "favicon" qu'on voit dans les onglets en général). C'est normal, ne vous en préoccupez pas.
 
-Essayer de charger des fausses pages de votre site pour tester:
+Essayer de charger des fausses pages de votre site pour tester: Pour les tester, taper ces exemple à la suite de http://localhost:8080/ dans l'adresse url de votre navigateur puis aller voir dans la console le résulat.
 
 exemple:
 /testpage
@@ -345,8 +345,170 @@ var server = http.createServer(function(req, res) {
 });
 server.listen(8080);
 ````
+Pour tester, taper http://localhost:8080/sous-sol/ ou http://localhost:8080/etage/1/chambre dans la barre d'adresse url de votre navigateur pour voir le message afficher dans la fenêtre du navigateur changer.
 
 Exercice :  faites en sorte d'afficher un message d'erreur si le visiteur demande une page inconnue. Et n'oubliez pas de renvoyer un code d'erreur 404 !
 
 
 ### Quels sont les paramètres?
+
+Les paramètres sont envoyés à la fin de l'URL, après le chemin du fichier.
+
+````code
+http://localhost:8080/page?prenom=Robert&nom=Dupont
+````
+
+Les paramètres sont contenus dans la châine ?prenom=Robert&nom=Dupont. Pour récupérer cette chaîne, il suffit de faire appel à :
+
+````javaScript
+url.parse(req.url).query
+````
+On parse la chaîne. Le problème c'est qu'on renvoie toute la chaîne sans découper au préalable les différents paramètres. Heureusement, il existe un module Node.js qui s'en charge pour nous: querystring!
+
+Incluez ce module:
+
+````javaScript
+var querystring = require('querystring');
+````
+On peut ensuite stocké le résulat à la fois du parse et du découpage dans une variable appelée var params
+
+````javaScript
+var params = querystring.parse(url.parse(req.url).query);
+````
+
+vous disposerez alors d'un tableau de paramètres "params". POur récupérer le paramètre "prenom" par exemple, il suffira d'écrire : params['prenom'].
+
+Voici donc le code complet permettant de récupérer les paramètres transmis en GET dans l'url, de les découper et le parser et de les stocké dans un tableau pour pouvoir les utiliser et les manipuler.  Si un nom et un prénom ont été transmis, alors, la page affiche Vous vous appelez prénom nom", si aucun paramètre n'a été transmis dans l'url, la page affiche "Vous devez bien avoir un prénom et un nom , non?".
+
+````javaScript
+var http = require('http');
+var url = require('url');
+var querystring = require('querystring');
+
+var server = http.createServer(function(req, res) {
+    var params = querystring.parse(url.parse(req.url).query);
+    res.writeHead(200, {"Content-Type": "text/plain"});
+    if ('prenom' in params && 'nom' in params) {
+        res.write('Vous vous appelez ' + params['prenom'] + ' ' + params['nom']);
+    }
+    else {
+        res.write('Vous devez bien avoir un prénom et un nom, non ?');
+    }
+    res.end();
+});
+server.listen(8080);
+````
+
+Deux petites précisions par rapport à ce code: 'prenom' in params me permet en JavaScript de tester si le tableau contient bien une entrée 'prénom'. S'il manque un paramètre, je peux alors afficher un message d'erreur (sinon mon script aurait affiché undefined à la la place).
+Par ailleurs , vous constaterez que je ne vérifie aps la page qui est appelée. Ce code fonctionne aussi bin que l'on soit sur http://localhost:8080 ou sur htpp:// localhost: 8080/pageimaginaire. Il faudrait combiner ce code et le précédent pour générer à la fois la page ET les pararmètres.
+
+## Shéma résumé
+
+![Récupérer l'URL et les paramètres avec Node.js ](https://user.oc-static.com/files/421001_422000/421255.png)
+
+Remarque: Pour éviter d'encoder les données manuellement dans l'url, on peut créer un formulaire demandant le nom et prenom de l'utilisateur et l'envoyé en traitement à cette page pour qu'elle affiche un message reprenant les données entrées par l'utilisateur dans le formulaire.
+
+
+## Quiz 1
+
+Votre score
+90%
+Bravo ! Vous avez réussi cet exercice !
+
+### Question 1
+
+Vrai ou faux ? Node.js est un framework très complet comparable à Symfony2 ou Django en termes de fonctionnalités.
+
+
+* Vrai
+* Faux (v)
+Node.js est très bas niveau et offre de base très peu de fonctionnalités. Il ne ressemble donc pas à un framework aussi complet que Symfony2 ou Django.
+
+### Question 2
+
+Sur quel langage est basé Node.js ?
+
+* JavaScript (v)
+* Python
+* Java
+* HTML
+Node.js est basé sur JavaScript (d'où le ".js" à la fin du nom). Il n'a rien à voir avec Java, un autre langage, ou même avec HTML : on n'est pas obligé de produire des pages web avec Node.js !
+
+### Question 3
+
+Laquelle de ces affirmations sur le fonctionnement de Node.js est vraie ?
+
+* Node.js s'exécute dans le navigateur du visiteur
+* Node.js peut exécuter 2 instructions exactement au même instant, à la même nanoseconde
+* Node.js est plus bas niveau que l'assembleur
+* Node.js est basé sur un modèle de programmation non bloquant(v)
+Attention : modèle non bloquant ne veut pas dire que les actions s'exécutent exactement en même temps ! Node.js "saute" d'une instruction à une autre très rapidement, dès qu'il est en attente d'informations, mais deux instructions ne peuvent pas être lues lors de la même nanoseconde ! On dit que Node.js est monothread.
+
+### Question 4
+
+Pour quel navigateur a été développé à l'origine le moteur JavaScript v8 dont tire partie Node.js ?
+
+* Firefox
+* Internet Explorer
+* Opera
+* Chrome (v)
+C'est Google, développeur de Chrome, qui a créé v8. C'est un environnement d'exécution du JavaScript très rapide qui confère une partie de sa rapidité à Node.js.
+
+### Question 5
+
+On dit que Node.js est...
+
+* Monothread (v)
+* Multithread
+* Megathread
+* Overthread
+Node.js est monothread, car une seule action à la fois peut s'exécuter au même instant. S'il est rapide, c'est parce que Node.js n'attend pour rien jamais qu'une action finisse de s'exécuter (comme un appel réseau).
+
+### Question 6
+
+Sous quel type de serveur web Node.js s'exécute-t-il par défaut ?
+
+* Apache
+* npm
+* Nginx
+* Node.js permet de lancer son propre serveur web(v)
+Node.js inclut un serveur web. Il n'est pas nécessaire d'en installer un, mais il faut par contre coder une partie des fonctionnalités d'un serveur web soi-même.
+
+### Question 7
+
+Quel est le rôle de la méthode writeHead de Node.js ?
+
+* Renvoyer un code HTTP (200, 404...)(v)
+* Renvoyer la balise HTML <head>
+* Cette méthode n'existe pas
+La méthode writeHead permet d'indiquer en en-tête HTTP si la page a été trouvée ou non, s'il y a eu une erreur lors de la génération de la page, etc.
+
+### Question 8
+
+Sur quel port Node.js doit-il s'exécuter ?
+
+* 80
+* 8080
+* 8000
+* Node.js n'est lié à aucun port particulier (v)
+C'est vous qui décidez du port sur lequel Node.js écoute, grâce à listen().
+
+### Question 9
+
+Comment charge-t-on une bibliothèque avec Node.js ?
+
+* require() (v)
+* load()
+* loadLibrary()
+* include()
+L'appel à require() provoque le chargement de la bibliothèque indiquée.
+
+### Question 10
+
+Pour déterminer le nom de la page appelée par le visiteur...
+
+
+* Il faut créer un fichier du même nom que la page (ex : index.js)
+* Il faut parser l'url à la main (v)
+* Il faut appeler la variable $_ PAGE
+Node.js est très bas niveau : on récupère l'URL qu'on doit ensuite parser grâce à plusieurs méthodes, pour déterminer le nom de la page réclamée par le visiteur.
