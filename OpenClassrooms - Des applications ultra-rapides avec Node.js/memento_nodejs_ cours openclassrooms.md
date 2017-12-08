@@ -748,3 +748,287 @@ Tous les modules de Node.js sont basés sur ce principe très simple. Cela vous 
 
 
 ## Utiliser NPM pour installer des modules
+
+NPM (le Node Package Manager) est un moyen formidable d'installer de nouveaux modules développés par la communauté.
+
+Imaginez que NPM est un peu l'équivalent d'apt-get sous Linux pour installer des programmes. Une simple commenad et le module est téléchargé et installé!
+En plus, NPM gère les dépendances. Cela signifie que si un module à besoin d'un autre module pour fonctionner, NPM ira le télécharger automatiquement!
+
+Voici l'adresse du site NPM: https://www.npmjs.com/
+
+NPM est très actif, Il y a plusieurs dizaines de milliers de modules disponibles et on compte plusieurs millions de téléchargements par semaine! Vous y trouverez donc certainement ce dont vous avez besoin!
+
+Il est aussi simple d'installer de nouveaux modules que de publier ses propres modules. C'est en bonne partie ce qui explique le grand succès de Node.js
+
+Pour trouver un module précis dans cette multitude de modules, il y a plusieurs manière de procédé.
+
+#### Trouver un module
+
+Si vous savez ce que vous cherche, le site web de NPM vous permet de faire une recherche. Mais NPM, cest avant tout une commande! Vous pouvez faire une recherche dans la console comme ceci pour rechercher tous les modules en rapport avec la base de données PostgreSQL.
+
+````code
+npm search postgresql
+````
+
+#### Installer un module
+
+Pour installer un module, placez-vous dans le dossier de votre projet et tapez
+
+````code
+npm install nomdumodule
+````
+
+Le module sera alors installé localement spécialement pour vore projet. Si vous avez un autre projet, il faudra alors relancer la commande dans le dossier de cet autre projet pour l'installer à nouveau. Cela vous permet d'utiliser des versions différentes d'un même module en fonction de vos projets.
+
+Nous allons faire un test ne installant un module markdown qui permet de convertir du code markdown en HTML
+
+````code
+npm install markdown
+````
+
+NPM va télécharger automatiquement la dernière version du module et il va la placer dans un sous-dossier node_modules. Vérifiez donc bien que vous êtes dans le dossier de votre projet Node.js avant de lancer cette commande.
+
+Une fois que cest fait, vous avez accès aux fonctions offertes par le module markdown. Lisez la doc du module: https://www.npmjs.com/package/markdown pour savoir comment l'utiliser. On n'y apprend qu'il faut faire appel à l'objet markdown à l'intérieur du module et qu'on peut appeler la fonctionc toHTML pour traduire dur Markdown en HTML.
+
+Essayons donc ce code:
+
+````javascript
+var markdown = require('markdown').markdown;
+
+console.log(markdown.toHTML('Un paragraphe en **markdown** !'));
+````
+
+affichera dans la console:
+
+````code
+<p>Un paragraphe en <strong>markdown</strong> !</p>
+````
+
+Ne  soyez pas surpris par le `require('markdown').markdown`. La doc du module nous idt que les fonctionssont dans l'objet "markdown", donc on va chercher directement cet objet au sein du module.
+
+
+#### L'installation locale et l'installation globale
+
+NPM installe les modules localement pour chaque projet. C'est pour cela qu'il crée un sous-dossier node_modules à l'intérieur de votre projet.
+
+Si vous utilisez le même module dans  projets différents, il ser téléchargé et copié  fois. C'est normal,cela permet de gérer les différences de version. C'est donc une bonne choseK
+
+Par contre il faut savoir que NPM permet aussi d'installer des modules globaux. Ca ne nous sert que dans de rares cas où le module fournit des éxécutables (et pas juste des fichiers .js)
+
+C'est le cas de notre module markdown par exemple. Pour l'installer globalement, on va ajouter le paramètre -g à la commande npm:
+
+````code
+npm install markdown -g
+````
+
+Vous aurez alors accès à un exécutables mdhtml dans votre console:
+
+````code
+echo 'Hello *World*!' | md2html
+````
+
+Les modules installés globalement ne peuvent pas être inclus dans vos projets Node.js avec `require()` ! Ils servent juste à fournir des commandes supplémentaires dans la console. Si vous voulez les utiliser en JavaScript, vous devez donc aussi les installer normalement (sans le -g) en local.
+
+#### Mettre à jour les modules
+
+C'est très simple de mettre à jour tous les modules d'un projet avec la commande:
+
+````code
+npm update
+````
+
+NPM va chercher sur les serveurs s'il y a de nouvelles versions des modules, puis mettre à jour les modules installés sur votre machine( en veillant à ne pas czsser la compatibilité) et il supprimera les anciennes versions. Bref, c'est la commande magique!
+
+###  Déclarer et publier son modules
+
+Si votre programme à besoin de modules externes, vous pouvez les installer un à un comme vous venez d'apprendre à le faire ... mais vous allez voir que ça va vite devenir assez compliqué à maintenir. C'est d'autant plus vrai si vous utilisez de nombreux modules. Comme ces modules évoluent de version en version, votre programme pourrait devenir incompatible suite à uen mise à jour d'un module externe!
+
+Heureusement, on peut régler tout ça en définissant les dépendances de notre programme dans un simple fichier JSON. C'est un peu la carte d'identité de notre application.
+
+On va créer une fichier package.json dans le même dossier que notre application et allons y placer ce code:
+
+````code
+{
+    "name": "mon-app",
+    "version": "0.1.0",
+    "dependencies": {
+        "markdown": "~0.4"
+    }
+}
+````
+
+Ce fichier JSON contient  paires clé-valeur:
+
+* name : c'est le nom de votre application. Restez simple, évitez espaces et accents.
+
+* version: c'est le numéro de version de votre application. il est composé d'un numéro de version majeure, de version mineure et de patch.
+
+* dependencies: c'es tun tableau listant les noms des modules dont a besoin votre application pour fonctionner ains que les versions compatiblesK
+
+Le ficheir peut être beaucoup plsu complet que cela, je ne vous ai montré ici que les valeurs essentielles. Pour tout connaître sur le fonctionnement de ce fichier package.json, je vous recommande cette cheat sheet: http://package.json.nodejitsu.com/
+http://browsenpm.org/package.json
+https://docs.npmjs.com/getting-started/using-a-package.json
+
+#### Le fonctionnement des numéros de version
+
+Pour bien gérer les dépendances et savoir mettre à jour le numéro de version de son application, il faut savoir comment fonctionnent les numéros de version avec Node.js. Il y a pour chaque application :
+
+* Un numéro de version majeure. En général on commence à 0 tant que l'application n'est pas considérée comme mature. Ce numéro change très rarement, uniquement quand l'application a subi des changements très profonds.
+
+* Un numéro de version mineure. Ce numéro est changé à chaque fois que l'application est un peu modifiée.
+
+* Un numéro de patch. Ce numéro est changé à chaque petite correction de bug ou de faille. Les fonctionnalités de l'application restent les mêmes entre les patchs, il s'agit surtout d'optimisations et de corrections indispensables.
+
+![numéro de version](https://user.oc-static.com/files/421001_422000/421284.png)
+
+Ici j'ai donc choisi de commencer à numéroter mon application à la version 0.1.0 (on aurait aussi pu commencer à 1.0.0 mais ç'aurait été prétentieux ;) ).
+
+* Si je corrige un bug, l'application passera à la version 0.1.1 et il me faudra mettre à jour ce numéro dans le fichier packages.json.
+
+* Si j'améliore significativement mon application, elle passera à la version 0.2.0, puis 0.3.0 et ainsi de suite.
+
+* Le jour où je considère qu'elle a atteint un jalon important, et qu'elle est mature, je pourrai la passer en version 1.0.0.
+
+#### La gestion des versions des dépendances
+
+C'est à vous d'indiquer avec quelles versions de ses dépendances votre application fonctionne. Si votre application dépend du module markdown v0.3.5 très précisément, vous écrirez :
+
+````code
+"dependencies": {
+    "markdown": "0.3.5" // Version 0.3.5 uniquement
+}
+````
+
+Si vous faites un npm update pour mettre à jour les modules externes, markdown ne sera jamais mis à jour (même si l'application passe en version 0.3.6). Vous pouvez mettre un tilde devant le numéro de version pour autoriser les mises à jour jusqu'à la prochaine version mineure :
+
+````code
+"dependencies": {
+    "markdown": "~0.3.5" // OK pour les versions 0.3.5, 0.3.6, 0.3.7, etc. jusqu'à la version 0.4.0 non incluse
+}
+````
+
+Si vous voulez, vous pouvez ne pas indiquer de numéro de patch. Dans ce cas, les modules seront mis à jour même si l'application change de version mineure :
+
+````code
+"dependencies": {
+    "markdown": "~0.3" // OK pour les versions 0.3.X, 0.4.X, 0.5.X jusqu'à la version 1.0.0 non incluse
+}
+````
+
+Attention néanmoins : entre deux versions mineures, un module peut changer suffisamment et votre application pourrait être incompatible. Je recommande d'accepter uniquement les mises à jour de patch, c'est le plus sûr.
+
+#### Publier un module
+
+Avec Node.js, vous pouvez créer une application pour vos besoins, mais vous pouvez aussi créer des modules qui offrent des fonctionnalités. Si vous pensez que votre module pourrait servir à d'autres personnes, n'hésitez pas à le partager ! Vous pouvez très facilement le publier sur NPM pour que d'autres personnes puissent l'installer à leur tour.
+
+Un module n'est rien d'autre qu'une application Node.j qui contient des instructions `exports` pour partager des fonctionnalités.
+
+Si vous désirez publier le module que vous avez créer et donner l'occasion à d'autres utilisateurs de le télécharger, voici la marche à suive:
+
+Commencer par vous créer un compte utilisateur sur npm:
+
+````code
+npm adduser
+````
+
+Une fois que c'est fait, placez-vous dans le répertoire de votre projet à publier. Vérifiez que vous avez :
+
+* Un fichier package.json qui décrit votre module (au moins son nom, sa version et ses dépendances)
+* Un fichier README.md (écrit en markdown) qui présente votre module de façon un peu détaillée. N'hésitez pas à y inclure un mini-tutoriel expliquant comment utiliser votre module !
+
+Il ne vous reste plus qu'à faire :
+
+````code
+npm publish
+````
+
+Il ne vous reste plus qu'à parler de votre module autour de vous, le présenter sur les mailing-lists de Node.js... Les portes de la gloire des geeks barbus vous attendent !
+
+## Le framework Express.js
+
+Grâce au framework, il existe un moyen d'alle plus vite qu'en codant en bas niveau. Pour gagner du temps lors du développement, il existent les bibliothèque et les frameworks qui sont des sortes de super-bibliothèques.
+
+Sur NPM, un module en particulier est asser plbiscité, il s'appelle Express.js. Il s'agit en fait d'un micro-framework pour Node.js. Il vous fournit des outils de base pour aller plus vite dans la création d'application Node.js.
+
+Attention, cependant Express, n'est pas du tout aussi puissant que Django ou Symfony2 qui offrent des fonctionnalités très complètes et puissantes (comme la génération d'inerfaces d'administration), ce que n'ess pas du tout capable de faire Express.js.
+
+Avec Node.js, on part de loin (bas niveau), Express,js permet donc d'être un peu moins bas niveau et de géer par exemple plus facilement les routes (URL) de votre application et d'utiliser des templates. Rien que ça, ça va déja être une petite révolution pour vous!
+
+Commençons par créer un un dossier pour faire une application de test Node.js. Installez-y Express avec la commmande:
+
+````code
+npm install express
+````
+
+Voilà, vous êtes prêts à utliser Express!
+
+### Les routes
+
+Nous avons vu à quel point il était fastidieuxde vérifier l'URL demandée avec Node.js. On aboutissait à du code spaghetti du type:
+
+````JavaScript
+if (page == '/') {
+    // ...
+}
+else if (page == '/sous-sol') {
+    // ...
+}
+else if (page == '/etage/1/chambre') {
+    // ...
+}
+````
+Lorsqu'on créer des applications web, on manipule des routes comme ici. Ce sont les différentes URL auquelles notre application doit répondre. En bref se sont les pages que l'utilisateur à demandé.
+
+La gestion des routes est importante. Si vous avez déja manipulé des frameworks comme Django ou Symfony2, vous voyez de que je veux dire. Retenez juste ceci, bien géer lees URL de son site est important, surtout lorsque celui-ci grossit. Express nous aide à faire cela bien.
+
+#### Routes simples
+
+Voici une application très basique utilisatnt Express pour commencer
+
+````JavaScript
+var express = require('express');
+
+var app = express();
+
+app.get('/', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes à l\'accueil');
+});
+
+app.listen(8080);
+````
+On commence par demander l'inclusiion d'Express et on crée un objet app en appelant la fonctionc express().
+
+Ensuite il suffit d'indiquer les différentes routes (les différentes URL) à laquelle votre application doit répondre. Ici, j'ai créé une seule route, la racine "/". Une fonction de callback est appelée quand quelq'un demande cette route.
+
+Ce système est beaucoup mieux fait qu'avec notre code contenant des if imbriqués. On peut écrire autant de routes de cette façon qu'on le souhaite.
+
+````JavaScript
+app.get('/', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes à l\'accueil, que puis-je pour vous ?');
+});
+
+app.get('/sous-sol', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes dans la cave à vins, ces bouteilles sont à moi !');
+});
+
+app.get('/etage/1/chambre', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Hé ho, c\'est privé ici !');
+});
+````
+
+ Si on souhaite géer les erreurs 404 lorsqu'une page demandée n'éxiste pas, on doit inclure obligatoirement inclure les lignes suivantes **à la fain de notre code** (justeaant app.listen):
+
+ ````JavaScript
+ // ... Tout le code de gestion des routes (app.get) se trouve au-dessus
+
+ app.use(function(req, res, next){
+     res.setHeader('Content-Type', 'text/plain');
+     res.send(404, 'Page introuvable !');
+ });
+
+ app.listen(8080);
+ ````
