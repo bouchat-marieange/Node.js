@@ -1032,3 +1032,219 @@ app.get('/etage/1/chambre', function(req, res) {
 
  app.listen(8080);
  ````
+On reviendra plus tard sur la syntaxe et les paramètres, n'y prêter pas attention pour l'instant.
+
+Express permet également de chaîner les appel à get() et use():
+
+````JavaScript
+app.get('/', function(req, res) {
+
+})
+.get('/sous-sol', function(req, res) {
+
+})
+.get('/etage/1/chambre', function(req, res) {
+
+})
+.use(function(req, res, next){
+
+});
+````
+
+Cela revient à faire app.get().get().get() ... Ca marche parce que ces fonctions se renvoient l'une à l'autre l'objets app. ce qui nous permet de raccourcier notre code. Ne soyez donc pas étonnés si vous voyez des codes utilisatnt Express ecrits sous cette forme.
+
+### Routes dynamiques
+
+Express permet de gérer des routes dynamiques, cest à dire des routes dont certaines portions peuvent varier. On doit écrire `:nomvariable` dans l'URL de la route, ce qui aura pour effet de créer un paramètre accessible depuis `req.params.nomvariable`. Voici comment faire:
+
+````JavaScript
+app.get('/etage/:etagenum/chambre', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes à la chambre de l\'étage n°' + req.params.etagenum);
+});
+````
+
+Cela vous permet de créer de belles URL et vous évite d'avoir à passer par le suffixe ("?variable=valeur") pour gérer des variables. Ainsi, toutes les routes suivantes sont valides:
+
+* /etage/1/chambre
+* /etage/2/chambre
+* /etage/3/chambre
+* /etage/nawak/chambre
+
+Attention il faudra encore vérifier dans votre fonction callbak que le paramètre transmis dans l'url est bien un nombre (et pas un string comme nawak par exemplte) et si il ne s'agit pas d'un nombre, de renvoyer une erreur 404.
+(voir exemple dans l'exercice Mon appli express)
+
+````Javascript
+var express = require('express'); //on demande l'inclusiion d'Express
+
+var app = express(); // on crée un objet app en appelant la fonctionc express()
+
+// Je crée une seule route pour commencer vers le repertoire racine "/" avec une fonction callback qui est appellée quand quelqu'un demande cette route et indique "Vous êtes à l'accueil"
+app.get('/', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes à l\'accueil');
+});
+
+//On peut ensuite ajouter autant de routes (adresse URL) qu'on le souhaite par ecemple (http://localhost:8080/sous-sol)
+app.get('/sous-sol', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes dans la cave à vins, ces bouteilles sont à moi !');
+});
+
+//Pour le cas ou les étages sont transmis en get (ex: route URL http://localhost:8080/etage/1/chambre), j'utilise un systeme pour récupérer les routes dynamiques (le numéro d'étage varie et est récupérer) et en plus je teste si la variable correspondant à l'étage est bien un nombre, si ce n'est pas le cas je redirige vers page 404, si c'est bien un nombre j'affiche la page correspondante avec l'étage transmis en Get
+app.get('/etage/:etagenum/chambre', function(req, res)
+{
+    res.setHeader('Content-Type', 'text/plain');
+    if (isNaN(req.params.etagenum) == true)
+    // On utilise la fonction javascript navitve isNAN() qui prend en paramètre la valeur à tester pour vérifier si la valeur en question est un nombre ou non. isNaN signifie "is not a Number", donc si l'étage renvoyé n'est pas un nombre (isNaN==true), alors on affiche la page 404 sinon (else) on affiche la page correxpondante à l'étage transmise en GET dans l'URL
+    {
+    app.use(function(req, res, next){ // gestion particulière par les erreurs 404 - la page demandée n'existe aps
+        res.setHeader('Content-Type', 'text/plain');
+        res.send(404, 'Erreur 404- Page introuvable !');
+    });
+    }
+  else{
+      res.end('Vous êtes à la chambre de l\'étage n°' + req.params.etagenum);
+    }
+});
+
+// gestion des erreurs 404 - la page demandée n'existe pas
+app.use(function(req, res, next){
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(404, 'Erreur 404- Page introuvable !');
+});
+
+app.listen(8080);
+````
+
+## Les templates
+
+Jus'qu'ici, nous avions renvoyé le code HTML directement en Javascript. Cela nous avait donné du code lourd et délicat à maintenir qui ressemblait à cela:
+
+````JavaScript
+res.write('<!DOCTYPE html>'+
+'<html>'+
+'    <head>'+
+'        <meta charset="utf-8" />'+
+'        <title>Ma page Node.js !</title>'+
+'    </head>'+
+'    <body>'+
+'     	<p>Voici un paragraphe <strong>HTML</strong> !</p>'+
+'    </body>'+
+'</html>');
+````
+
+Express nous permet de sortir de ce code lourd en utilisant des templates. Les templates sont en quelque sorte des langages faciles à écrire qui nous permettent de produire du HTML et d'insérer au milieu du contenu variable.
+
+PHP lui-même est en fait un langatge de template qui nous permet de faire ceci:
+
+````php
+<p> Êtes vous le visiteur n° <?php echo $visiteurnum; ?></p>
+````
+
+Il existe beaucoup d'autres langage de templates, comme Twig, Smarty, Haml, JSP, Jade, EJS ... Express vous permet d'utiliser la plupart d'entre eux, chacun ayant son lot d'avantage et d'inconvénients. En général ils gèrent tous l'essentiel, à savoir : les variables, les conditions, les boucles, etc...
+
+Le principe est le suivant: depuis votre fichier Javascript, vous appelez le templatee de votre choix en lui transmettant les variables dont il a besoin pour construire la page.
+
+![template Node.js](https://user.oc-static.com/files/421001_422000/421341.png)
+
+### Les bases d'EJS
+
+Comme il existe de nombreux systèmede templates, je vais en choisir un dans le lot. Je vous propose d'utiliser EJS (http://www.embeddedjs.com/) (Embedded JavaScript).
+
+Installez-le pour votre projet (lancer cette ligne de commande avec le terminal situé dans votre dossier projet)
+
+````code
+npm install ejs
+````
+
+Nous pouvons maintenant déléguer la gestion de la vue (du HTML) à notre moteur de template. Plus besoin d'écrire du HTML au milieu du code JavaScript comme un cochon!
+
+Code à placer dans le fichier app.js
+
+````javascript
+var express = require('express'); //on demande l'inclusiion d'Express
+
+var app = express(); // on crée un objet app en appelant la fonctionc express()
+
+// Je crée une seule route pour commencer vers le repertoire racine "/" avec une fonction callback qui est appellée quand quelqu'un demande cette route et indique "Vous êtes à l'accueil"
+app.get('/', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes à l\'accueil');
+});
+
+//On peut ensuite ajouter autant de routes (adresse URL) qu'on le souhaite par ecemple (http://localhost:8080/sous-sol)
+app.get('/sous-sol', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes dans la cave à vins, ces bouteilles sont à moi !');
+});
+
+app.get('/etage/:etagenum/chambre', function(req, res) {
+    res.render('chambre.ejs', {etage: req.params.etagenum});
+});
+
+app.listen(8080);
+````
+
+Ce code fait appel à un fichier chambre.ejs qui doit se trouver dans un sous-dossier appelé "views". Créez donc un fichier /views/chambre.ejs et placer-y le code suivant:
+
+````ejs
+<h1>Vous êtes dans la chambre</h1>
+
+<p>Vous êtes à l'étage n°<%= etage %></p>
+````
+
+la balise `<%= etage %>` sera remplacée par la variable ´etage´ que l'on a transmise au template avec `{etage: req.params.etagenum}`!
+
+Dans la page du navigateur le résultat est mis en forme selon la mise en page définie dans le fichier 'chambre.ejs' avec un titre H1 suivi d'un paragraphe.
+
+#### Plusieurs paramètres et des boucles
+
+Sachez que vous pouvez envoyer plusieurs paramètres à vos templates, y compris des tableaux! Pour cette démonstration, nous allons faire une application qui compte jusqu'à un nombre envoyé en paramètre et qui affiche un nom au hasard au sein d'un tableau .
+
+Si vous créer un nouveau dossier de travaux,n'oubliez pas de d'installer ejs dans le dossier avec la commande aant de travailler pour que le code fonctionne.
+
+````code
+npm install ejs
+});
+````
+
+Voici le code javascript:
+
+````javascript
+app.get('/compter/:nombre', function(req, res) {
+    var noms = ['Robert', 'Jacques', 'David'];
+    res.render('page.ejs', {compteur: req.params.nombre, noms: noms});
+});
+````
+
+On transmet le nombre envoyé en paramètre et une liste de noms sous forme de tableau. Ensuite, dans le template EJS: (attention placer ce code dans un sous dossier views de votre projet et mettez lui une extension ejs)
+
+````ejs
+<h1>Je vais compter jusqu'à <%= compteur %></h1>
+
+<p><%
+    for(var i = 1 ; i <= compteur ; i++) {
+    %>
+
+    <%= i %>...
+
+<% } %></p>
+
+<p>Tant que j'y suis, je prends un nom au hasard qu'on m'a envoyé :
+<%= noms[Math.round(Math.random() * (noms.length - 1))] %>
+</p>
+````
+
+Vous voyez que l'on peut faire des boucles avec les templates EJS. En fait, on utilise la même syntaxe que Javascript (d'où la boucle for)
+Ma petite manipulation à la fin du code me permet dde prendre un nom au hasard dans le tableau aui a été envoyé au template.
+
+Résultat: (pour l'url  http://localhost:8080/compter/66):
+
+![compter](https://user.oc-static.com/files/421001_422000/421331.png)
+
+De la même façon, vous pouvez avoir recours à des conditions (if)et des boucles (while) au sein de vos templates EJS.
+
+N'hésitez pas à regarder aussi d'autres systèmes de templates comme Jade (http://jade-lang.com/) ou Haml (http://haml.info/) quui propose une toute autre façon de créer ses pages web!
+
+## Aller plus loin: les middlewares
