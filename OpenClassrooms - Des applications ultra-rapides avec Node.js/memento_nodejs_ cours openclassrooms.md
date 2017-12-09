@@ -1202,23 +1202,36 @@ Dans la page du navigateur le résultat est mis en forme selon la mise en page d
 
 Sachez que vous pouvez envoyer plusieurs paramètres à vos templates, y compris des tableaux! Pour cette démonstration, nous allons faire une application qui compte jusqu'à un nombre envoyé en paramètre et qui affiche un nom au hasard au sein d'un tableau .
 
-Si vous créer un nouveau dossier de travaux,n'oubliez pas de d'installer ejs dans le dossier avec la commande aant de travailler pour que le code fonctionne.
+Si vous créer un nouveau dossier de travaux,n'oubliez pas de d'installer ejs et express dans le dossier avec la commande aant de travailler pour que le code fonctionne.
+
+````code
+npm install Express
+````
 
 ````code
 npm install ejs
-});
 ````
 
-Voici le code javascript:
+Voici le code javascript: (fichier app.js à la racine du dossier de travail)
 
 ````javascript
+var express = require('express'); //on demande l'inclusiion d'Express
+
+var app = express(); // on crée un objet app en appelant la fonctionc express()
+
+
 app.get('/compter/:nombre', function(req, res) {
     var noms = ['Robert', 'Jacques', 'David'];
     res.render('page.ejs', {compteur: req.params.nombre, noms: noms});
 });
+
+app.listen(8080);
 ````
 
 On transmet le nombre envoyé en paramètre et une liste de noms sous forme de tableau. Ensuite, dans le template EJS: (attention placer ce code dans un sous dossier views de votre projet et mettez lui une extension ejs)
+
+
+Code à placer dans le fichier page.ejs (voir nom de la page dans le code js ci dessus premier paramètre res.render) qui sera placer dans une sous-dossier views du dossier de travail:
 
 ````ejs
 <h1>Je vais compter jusqu'à <%= compteur %></h1>
@@ -1248,3 +1261,125 @@ De la même façon, vous pouvez avoir recours à des conditions (if)et des boucl
 N'hésitez pas à regarder aussi d'autres systèmes de templates comme Jade (http://jade-lang.com/) ou Haml (http://haml.info/) quui propose une toute autre façon de créer ses pages web!
 
 ## Aller plus loin: les middlewares
+
+Nous venons de voir eux fonctionnalités essentielles d'Express:
+
+* Les routes: elles permettent de géer efficacement les URL
+* Les vues : elles permettent un accès aux systèmes de templates comme EJS
+
+C'est déja pas mal, mais Express permet également de faire d'autres choses!
+
+### Express et les middlewares
+
+Express est une framework basé sur le concept de middlewares. Ce sont des petits morceaux d'application qui rendent chacun un service spécifique. Vous pouvez charger uniquement les middlewares dont vous avez besoin.
+
+Express est fourni avec une quainzaine de middlewares de base, et d'autres développeurs peuvent bien entendu en proposer d'autres via NPM. Les middlewares livrés avec Express fournissent chacun des micro-fonctionnalités. Il y a par exemple:
+
+* compression : permet la compression gzip de la page pour un envoi plus rapide au navigateur
+* cookie-parser : permet de manipuler les cookie-parser
+* cookie-session: permet de gérer des informations de session (durant la visite d'un visiteur)
+* serve-static : permet de renvoyéer des fichiers statiques contenus dans un dossier (images, fichiers à télécharger ...)
+* serve-favicon : permet de renvoyer la favicon du site
+* csrf : fournit une protection contre les failles csrf
+* etc...
+
+Tous ces middleswares offrent vraiment des micro-fonctionnalités. il y en a des tous petits comme "serve-favicon" par exemple.
+
+Ces middlewares sont interconnectés et peuvent communiquer entre eux. Express ne fait qu'ajouter les routes et les vues par-dessus l'ensemble.
+
+Tous ces middlewares sont interconnectés et peuvent communiquer entre eux. Express ne fait qu'ajouter les routes et les vues par-dessus l'ensemble.
+
+Tous ces middlewares communiquent entre eux en se renvoyant jusqu'à 4 paramètres :
+
+* ´err´ : les erreurs
+* ´req´ : la requête du visiteur
+* ´res´: la réponse à renvoyéer (la page HTML et les informations d'en-tête)
+* ´next´ : un callback vers la prochaine fonction à appeler
+
+Si je devais résumer comment communiquent les middlewares dans un schéma, ca donnerait ça:
+
+![communication middlewares](https://user.oc-static.com/files/421001_422000/421333.png)
+
+Les middlewares d'Express étaient séparés auparavant dans un module appelé Connect. Ils sont désormais intégrés à Express. N'hésitez pas à a lire la doc des middlewares (http://expressjs.com/en/guide/using-middleware.html) puis à lire la doc d'Express (http://expressjs.com/en/api.html). Vous y trouverez toutes les informations dont vous avez besoin pour utiliser les middlewares.
+
+### Utiliser les middleware au sein d'Express
+
+Concrètement, il suffit d'appeler la méthode `àpp.use()` pour utiliser un middleware. Vous pouvez les chaîner (les appeller les uns à la suite des autres). Par exemple, vous pouvez faire:
+
+Attention pensez à installer les middlewares dont vous avez besoin avec npm install avant d'exécuter ce code. Pour ce code taper dans le terminal en vous placant dans votre dossier de travail:
+
+````code
+npm install express
+````
+Install le framework express
+
+````code
+npm install logging
+````
+qui fait référence au middleware morgan (https://www.npmjs.com/package/morgan)
+
+````code
+npm install serve-favicon
+````
+https://www.npmjs.com/package/serve-favicon
+
+````javascript
+var express = require('express');
+var morgan = require('morgan'); // Charge le middleware morgan pour logging
+var favicon = require('serve-favicon'); // Charge le middleware de serve -favicon pour favicon
+
+var app = express();
+
+app.use(morgan('combined')) // Active le middleware de logging
+
+.use(express.static(__dirname + '/public'))// Indique que le dossier /public contient des fichiers statiques
+ (middleware chargé de base)
+.use(favicon(__dirname + '/public/favicon.ico')) // Active la favicon indiquée
+.use(function(req, res){ // Répond enfin
+    res.send('Hello');
+});
+
+app.listen(8080);
+````
+
+L'ordre d'appel des middlewares est extrêmement important. Par exemple, on commence par ativer le logger (morgan). Si on le faisait en dernier, on ne loggerait rien!
+Quand vous faites appel au middleware, réfléchissez donc à l'ordre, car il peut impacter fortement le fonctionnement de votre application.
+
+Comme vous le voyez, j'ai fait appel aux middleware morgan, static (alias de serve-static) et favicon dans le cas présent. Chaque middleware va se renvoyer des données (la requête, la réponse, la fonction suivante à appeler ...). Chacun a une rôle très précis. Pour savoir les utiliser il suffit de lire la doc - liste des middlewares et de leurs description (http://expressjs.com/en/resources/middleware.html)
+
+Pour résumé, Express propose un ensemble de middleares qui communiquent entre eux. Appelez ces middlewares pour utiliser leurs fonctionnnalités et faites attention à l'ordre d'appel qui est important (on n'active pas un logger à la fin des opérations !).
+
+## TP : la todo liste
+
+Dans ce TP nous allons réalisé une application de todo list (liste des tâches) pour mettre en pratique les connaissances que nous avons acquises.
+
+Voici à quoi va ressembler ce que nous allons créer:
+
+![Todo list apercu](https://user.oc-static.com/files/421001_422000/421348.png)
+
+Dans notre todo list :
+
+* On peut ajouter des éléments à la todolist via le formulaire
+* On peut supprimer des éléments en cliquant sur les croix de la liste
+* La liste est stockée dans la session du visiteur. Si quelqu'un d'autre se connecte, il aura sa propre liste.
+
+Les instructions sont simples et le code ne devrait pas être trop long,mais vu qu'il s'agit de votre première app, il est normal de tatonner un peu avant d'y arriver. Si vous avez besoin d'aide, consulter la section "Un peu d'aide", mais tenter d'y arriver par vous-même avant de comparer votre travail avec celui présenté dans cette section.
+
+Attention: N'oubliez pas d'ouvrir la doc d'Express (http://expressjs.com/en/api.html) ou en français (http://expressjs.com/fr/)
+
+A vous de jouer !
+
+## Les étapes que j'ai effectuées pour réalisé le TP Todolist
+
+1. Créer un nouveau dossier de travail appellé "tptodolist" et me placer avec le terminal dans ce dossier de travail
+2. Créer un fichier app.js
+3. Créer un sous-dossier "views" contenant un fichier todoview.ejs pour gérer le template de views de la todolist avec ejs
+4. Installer express (npm install express)
+5. Installer ejs (npm install ejs)
+6. Installer un middleware de logging (npm install morgan)
+7. Dans le fichier app.js stocké dans des variable tout les require des modules et middleware utilisés.
+8. Mettre sur papier l'ordre des opérations qui vont devoir être effectuées (UML)
+9. Faire un shéma pour voir quel fichier gère quoi et contient quel
+10. Pseudo-code
+
+```
