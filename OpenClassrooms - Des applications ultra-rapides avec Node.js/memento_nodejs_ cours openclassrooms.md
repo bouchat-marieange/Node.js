@@ -125,7 +125,7 @@ Attention, n'oubliez pas de bien fermer la fonction de callback avec une accolad
 
 La fonction de callbak est donc appellée à chaque fois qu'un visiteur se connecte à notre site. Elle prend 2 paramètres:
 
-* La requête du visiteur (req dans mes exemples): cet objet contient toutes les informations sur ce que le visiteur à demandé. On y trouve le nom de la page appelée, les paramètres, les éventuels champs de formulaires remplis, ... Bref toutes les requêtes
+* La requête du visiteur (req dans mes exemples): cet objet contient toutes les informations sur ce que le visiteur à demandé. On y trouve le nom de la page appelée, les paramètres, les éventuels champs de formulaires remplis, ... Brevar express = require('express');f toutes les requêtes
 
 * La réponse que vous devez renvoyer (res dans mes exemples): c'est cet objet qu'il faut remplir pour donner un retour au visiteur. Au final, res contiendra en général le code HTML de la page à renvoyer au visiteur.
 
@@ -1028,7 +1028,7 @@ app.get('/etage/1/chambre', function(req, res) {
  // ... Tout le code de gestion des routes (app.get) se trouve au-dessus
 
  app.use(function(req, res, next){
-     res.setHeader('Content-Type', 'text/plain');
+     res.setHeader('Content-Typesi ', 'text/plain');
      res.send(404, 'Page introuvable !');
  });
 
@@ -1360,7 +1360,7 @@ Install le framework express
 
 ````code
 npm install logging
-````
+```
 qui fait référence au middleware morgan (https://www.npmjs.com/package/morgan)
 
 ````code
@@ -1369,7 +1369,8 @@ npm install serve-favicon
 https://www.npmjs.com/package/serve-favicon
 
 ````javascript
-var express = require('express');
+var express = require('express');//on demande l'inclusion d'Express, le framework Node.js qui permet de réaliser des applications plus facilement. Pas oublier d'installer express dans le dossier avec la commande npm install express (qui va créer un fichier node_modules contenant tout les fichiers du framework express dans le dossier de travail)
+var session = require ('cookie-session'); // Charge le middleware de sessions. On demande l'inclusion du module cookie-session préalablement installé avec npm install cookie-session
 var morgan = require('morgan'); // Charge le middleware morgan pour logging
 var favicon = require('serve-favicon'); // Charge le middleware de serve -favicon pour favicon
 
@@ -1481,11 +1482,6 @@ Comment choisir quel module utilisé entre cookie-session et express-session:
 
 * Nous aurons besoin de récupérer les données du formulaire dans /todo/ajouter. Nous avons appris à récupérer des paramètres depuis l'URL (transmis en get), mais pas depuis les formulaires. Pour faire cela nous allons avoir besoin du middleware `body-parser` qui permet de récupérer des infos transmise par la méthode poste et accessible via req.body.nomDuChamp.
 
-
-
-* Créer un sous-dossier "views" contenant un fichier todoview.ejs pour gérer le template de views de la todolist avec ejs
+* Créer un sous-dossier "views" contenant un fichier todoview.ejs pour gérer le template de views de la todolist avec une extension .ejs
 
 * Dans le fichier app.js stocké dans des variable tout les require des modules et middleware utilisés.
-* Mettre sur papier l'ordre des opérations qui vont devoir être effectuées (UML)
-* Faire un shéma pour voir quel fichier gère quoi et contient quel
-* Pseudo-code
