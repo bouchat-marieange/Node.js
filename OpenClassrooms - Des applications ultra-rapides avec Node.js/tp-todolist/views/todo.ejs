@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <!-- <meta charset="UTF-8"> -->
+  <!-- <link rel="stylesheet" href="css/style"> -->
+  <style>
+      a {text-decoration: none; color: black;}
+  </style>
+  <title>TP - Ma todolist</title>
+</head>
+
+<body>
+    <h1>Ma todolist</h1>
+
+      <!-- Affichage de toutes les tâches (todo) et des valeurs d'index (index) qui leur sont associés contenues dans le tableau (todolist) -->
+      <ul>
+      <% todolist.forEach(function(todo, index) { %> <!-- On réalise une boucle forEach dans un tableau qui s'appelle todolist et on récupère en arguments todo (la tâche) et index (l'index lié à cette tâche qui permettra de la supprimer) -->
+          <li><a href="/todo/supprimer/<%= index %>">✘</a> <%= todo %></li> <!-- On place dans le <li> sous forme de lien l'index récupéré dans l'url de todo/supprimer/index et sous forme de texte du <li> le nom de la tâche -->
+      <% }); %>
+      </ul>
+
+      <!-- Formulaire d'ajout de tâche à la liste -->
+      <form method="post" action="/todo/ajouter/"><!-- On envoie à la page de traitement /todo/ajouter/ les tâches ajoutées via le formulaire avec la méthode post (nécessité du middleware body-parse)-->
+        <p>
+          <label for= "newtodo">Que dois-je faire ? </label> <!-- Label, Etiquette de l'input pour la tâche à ajouter -->
+          <input type="text" name="newtodo" id="newtodo" autofocus /><!-- On crée un input de type text lié au label "for" du label est identique au "name" de l'input = newtodo -->
+          <input type="submit" value="Valider" />
+        </p>
+      </form>
+
+  </body>
+
+</html>
