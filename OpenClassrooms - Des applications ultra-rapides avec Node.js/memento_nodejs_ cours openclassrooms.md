@@ -778,7 +778,7 @@ Pour installer un module, placez-vous dans le dossier de votre projet et tapez
 npm install nomdumodule
 ````
 
-Le module sera alors installé localement spécialement pour vore projet. Si vous avez un autre projet, il faudra alors relancer la commande dans le dossier de cet autre projet pour l'installer à nouveau. Cela vous permet d'utiliser des versions différentes d'un même module en fonction de vos projets.
+Le module sera alors installé localement spécialement pour votre projet. Si vous avez un autre projet, il faudra alors relancer la commande dans le dossier de cet autre projet pour l'installer à nouveau. Cela vous permet d'utiliser des versions différentes d'un même module en fonction de vos projets.
 
 Nous allons faire un test ne installant un module markdown qui permet de convertir du code markdown en HTML
 
@@ -857,11 +857,11 @@ On va créer une fichier package.json dans le même dossier que notre applicatio
 }
 ````
 
-Ce fichier JSON contient  paires clé-valeur:
+Ce fichier JSON contient des paires clé-valeur:
 
 * name : c'est le nom de votre application. Restez simple, évitez espaces et accents.
 
-* version: c'est le numéro de version de votre application. il est composé d'un numéro de version majeure, de version mineure et de patch.
+* version: c'est le numéro de version de votre application. il est composé d'un numéro de version majeure, de version mineure et de patch. Pour savoir quelle version des module est utilisée pour les renseignée, il faut taper dans le terminal positionné sur son dossier de travail la commande `npm list` (renvoie la liste des package local - uniquement pour ce dossier de travail) - `npm list -g` (renvoie la liste des package installer globalement). Attention taper cette commande avant de créer le fichier package.json sinon le terminal renvoie une erreur. On peut aussi récupérer la version d'un package spécifique en passant son nom en argument avec la commande `npm list grunt`
 
 * dependencies: c'es tun tableau listant les noms des modules dont a besoin votre application pour fonctionner ains que les versions compatiblesK
 
@@ -1377,9 +1377,13 @@ A vous de jouer !
 4. Installer express (npm install express)
 5. Installer ejs (npm install ejs)
 6. Installer un middleware de logging (npm install morgan)
+7. Installer cookie-session (npm install cookie-session)(https://github.com/expressjs/cookie-session/blob/master/README.md)
+8. Installer body-parser (npm )()(Pour gérer la requête HTTP POST dans Express.js version 4 et supérieure, vous devez installer un module middleware appelé body-parser.body-parser est un morceau de middleware express qui lit l'entrée d'un formulaire et le stocke comme un objet javascript accessible via req.body.)
+9. Install markdown (npm install markdown)
 7. Dans le fichier app.js stocké dans des variable tout les require des modules et middleware utilisés.
 8. Mettre sur papier l'ordre des opérations qui vont devoir être effectuées (UML)
 9. Faire un shéma pour voir quel fichier gère quoi et contient quel
 10. Pseudo-code
+11. On créer un un ficher package.json dans le dossier de notre application reprenant toutes les dépendances de notre application (cela permettra une mise à jour des modules et une maintenance plus rapide et sûr)
 
 ```

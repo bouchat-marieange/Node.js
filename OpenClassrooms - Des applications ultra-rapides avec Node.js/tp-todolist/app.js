@@ -11,9 +11,9 @@ app.use(morgan('combined')) // Active le middleware de logging
   res.send('Hello');
 });
 
-//Se charge du rendu visuel de la page avec le html (il faut pour cela récupérer l'utilisateur loggé) placé dans le fichier todoview.ejs
+//Se charge du rendu visuel de la page avec module ejs avec le html (il faut pour cela récupérer l'utilisateur loggé) placé dans le fichier todoview.ejs
 app.get('/public/:user', function(req, res) {
-    res.render('todoview.ejs', {user: req.params.user});
+    res.render('todoview.ejs', {utilisateur: req.params.user});
 });
 
 app.listen(8080);
