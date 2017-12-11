@@ -39,10 +39,10 @@
     <!-- A la suite du lien <a> on affiche la tâche correspondante <%= todo %>  -->
     <!-- La boucle forEach va ainsi afficher toutes les tâches stockées dans tableau todolist en y associant leur id pour permettre de les supprimer. -->
 
-      Affichage de toutes les tâches (todo) et des valeurs d'index (index) qui leur sont associés contenues dans le tableau (todolist)
+      <!-- Affichage de toutes les tâches (todo) et des valeurs d'index (index) qui leur sont associés contenues dans le tableau (todolist) -->
       <ul>
       <% todolist.forEach(function(todo, index) { %> <!-- On réalise une boucle forEach dans un tableau qui s'appelle todolist et on récupère en arguments todo (la tâche) et index (l'index lié à cette tâche qui permettra de la supprimer) -->
-          <li><a href="/todo/supprimer/<%= index %>">✘</a> <%= todo %></li>
+          <li><a href="/todo/supprimer/<%= index %>">✘</a> <%= todo %></li> <!-- On place dans le <li> sous forme de lien l'index récupéré dans l'url de todo/supprimer/index et sous forme de texte du <li> le nom de la tâche -->
       <% }); %>
       </ul>
 
