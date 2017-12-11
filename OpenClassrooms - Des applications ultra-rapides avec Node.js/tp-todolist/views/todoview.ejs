@@ -1,25 +1,61 @@
-<h1>Ma todolist</h1>
+<!DOCTYPE html>
 
-<p id="list">
+<html lang="en">
 
-<!-- Il faudra faire une boucle sur toutes les taches récupérées via le formulaire  -->
-<!-- et les stockées sous forme de tableau pour boucler dessus  -->
-<!-- et les afficher sous forme de liste à puces  -->
-<!-- et en même temps de checkbox pour pouvoir leur appliquer une croix pour les supprimer -->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/style">
+  <title>TP - Ma todolist</title>
+</head>
 
-<!-- <ul>
-  <li></li>
-  <li></li>
-  <li></li>
-</ul> -->
-</p>
+<body>
+    <h1>Ma todolist</h1>
 
-<p id="form">
-  <form method="GET" action="todoview.php">
+    <!-- // Les tâches sont affichées sous la forme d'un liste qui est mise en forme en html avec les balises <li></li> contenue dans des balises <ul></ul> -->
+    <!-- <ul>
+      <li></li>
+    </ul> -->
 
-    <p>Que dois-je faire ? </p>
-    <input type="checkbox" name="tache" id="tache" />Ici devra s'insérer la tache récupéré dans le formulaire
-    <input type="submit" value="Valider" />
+    <!-- Pour afficher les différentes tâches déja stockées pour l'utilisateur, il faudra faire une boucle sur un tableau pour récupérer chaque tâche (et son index) et les insérer dans les <li> de la liste à puces -->
+    <!-- Pour effectuer une boucle on va utiliser une boucle forEach qui est le plus adapté pour afficher les élément d'un tableau -->
+    <!-- Exemple de boucle foreach en javascript -->
 
-</form>
-</p>
+            <!-- var a = ['a', 'b', 'c']; // le taableau contenant les données
+
+            a.forEach(function(element) { // le nom du tableau suivi d'un point,puis foreach function (les arguments de la fonction (les éléments que je veux afficher))
+              console.log(element); //console/log permet d'afficher le résultat de la boucle foreach dans la console
+            });
+            // a
+            // b
+            // c -->
+
+
+    <!-- Appliquons cela à la boucle de la todolist  en utilisant la syntaxe particulière utilisée avec le module ejs -->
+    <!-- On place les données récupérée dans une liste en les plaçant entre des balises <li>  -->
+    <!-- Tout d'abord on récupère l'index de la tache dans l'url et on le place dans un lien <a> à l'intérieur du <li> -->
+    <!-- Le lien <a> est fait vers la page /todo/supprimer/<%= index %> c'est la page qui gère la suppression des tâches. -->
+    <!-- A la suite du lien <a> on affiche la tâche correspondante <%= todo %>  -->
+    <!-- La boucle forEach va ainsi afficher toutes les tâches stockées dans tableau todolist en y associant leur id pour permettre de les supprimer. -->
+
+      Affichage de toutes les tâches (todo) et des valeurs d'index (index) qui leur sont associés contenues dans le tableau (todolist)
+      <ul>
+      <% todolist.forEach(function(todo, index) { %> <!-- On réalise une boucle forEach dans un tableau qui s'appelle todolist et on récupère en arguments todo (la tâche) et index (l'index lié à cette tâche qui permettra de la supprimer) -->
+          <li><a href="/todo/supprimer/<%= index %>">✘</a> <%= todo %></li>
+      <% }); %>
+      </ul>
+
+      <!-- Formulaire d'ajout de tâche à la liste -->
+      <form method="post" action="/todo/ajouter/"><!-- On envoie à la page de traitement /todo/ajouter/ les tâches ajoutées via le formulaire avec la méthode post (nécessité du middleware body-parse)-->
+        <p>
+          <label for= "newtodo">Que dois-je faire ? </label> <!-- Label, Etiquette de l'input pour la tâche à ajouter -->
+          <input type="text" name="newtodo" id="newtodo" autofocus /><!-- On crée un input de type text lié au label "for" du label est identique au "name" de l'input = newtodo -->
+          <input type="submit" value="Valider" />
+        </p>
+    </form>
+    </p>
+
+  </body>
+
+</html>

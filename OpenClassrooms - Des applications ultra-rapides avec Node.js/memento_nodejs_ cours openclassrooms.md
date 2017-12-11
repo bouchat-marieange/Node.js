@@ -863,9 +863,11 @@ Ce fichier JSON contient des paires clé-valeur:
 
 * version: c'est le numéro de version de votre application. il est composé d'un numéro de version majeure, de version mineure et de patch. Pour savoir quelle version des module est utilisée pour les renseignée, il faut taper dans le terminal positionné sur son dossier de travail la commande `npm list` (renvoie la liste des package local - uniquement pour ce dossier de travail) - `npm list -g` (renvoie la liste des package installer globalement). Attention taper cette commande avant de créer le fichier package.json sinon le terminal renvoie une erreur. On peut aussi récupérer la version d'un package spécifique en passant son nom en argument avec la commande `npm list grunt`
 
-* dependencies: c'es tun tableau listant les noms des modules dont a besoin votre application pour fonctionner ains que les versions compatiblesK
+* dependencies: c'es tun tableau listant les noms des modules dont a besoin votre application pour fonctionner ains que les versions compatibles.
 
-Le ficheir peut être beaucoup plsu complet que cela, je ne vous ai montré ici que les valeurs essentielles. Pour tout connaître sur le fonctionnement de ce fichier package.json, je vous recommande cette cheat sheet: http://package.json.nodejitsu.com/
+Petite remarque, le petit tilde ~ placer devant la version des modules permet d'autoriser les futurs patchs de ces modules mmais pas les nouvelles versions mineures ou majeures, ce qui garantit que leur API ne changera pas, et donc que notre code continuera à fonctionner même avec ces mises à jour.
+
+Le fichier peut être beaucoup plus complet que cela, je ne vous ai montré ici que les valeurs essentielles. Pour tout connaître sur le fonctionnement de ce fichier package.json, je vous recommande cette cheat sheet: http://package.json.nodejitsu.com/
 http://browsenpm.org/package.json
 https://docs.npmjs.com/getting-started/using-a-package.json
 
@@ -1248,6 +1250,49 @@ Code à placer dans le fichier page.ejs (voir nom de la page dans le code js ci 
 <%= noms[Math.round(Math.random() * (noms.length - 1))] %>
 </p>
 ````
+Remarque dans les fichiers.ejs, ce qui se trouve entre les balises <% contenu entre les balises %> est éxécuter en javascript. Le javascript entre les balises <%= %> ajoute du HTML au résultat.
+
+Par exemple:
+
+**Ajouter un titre**
+````javascript
+"<h1> <%= title %> </h1>"
+````
+
+**Ajouter un lien**
+````javascript
+ "<%= link_to(supplies[i], 'supplies/'+supplies[i]) %>"
+````
+
+**Ajouter lien dans une liste à puces reprenant les données d'un tableau**
+````javascript
+<h1><%= title %></h1>
+<ul>
+<% for(var i=0; i<supplies.length; i++) {%>
+	<li><%= link_to(supplies[i], 'supplies/'+supplies[i]) %></li>
+<% } %>
+</ul>
+````
+
+**Ajouter une image**
+````javascript
+<%= img_tag('images/maid.png') %>
+````
+
+**Liste à puces bouclant sur de données récupérées dans un tableau**
+````javascript
+<ul>
+<% for(var i=0; i<supplies.length; i++) {%>
+   <li><%= supplies[i] %></li>
+<% } %>
+</ul>
+````
+**Résultat du code ci-dessus**
+````code
+* mop
+* broom
+* duster
+````
 
 Vous voyez que l'on peut faire des boucles avec les templates EJS. En fait, on utilise la même syntaxe que Javascript (d'où la boucle for)
 Ma petite manipulation à la fin du code me permet dde prendre un nom au hasard dans le tableau aui a été envoyé au template.
@@ -1371,19 +1416,76 @@ A vous de jouer !
 
 ## Les étapes que j'ai effectuées pour réalisé le TP Todolist
 
-1. Créer un nouveau dossier de travail appellé "tptodolist" et me placer avec le terminal dans ce dossier de travail
-2. Créer un fichier app.js
-3. Créer un sous-dossier "views" contenant un fichier todoview.ejs pour gérer le template de views de la todolist avec ejs
-4. Installer express (npm install express)
-5. Installer ejs (npm install ejs)
-6. Installer un middleware de logging (npm install morgan)
-7. Installer cookie-session (npm install cookie-session)(https://github.com/expressjs/cookie-session/blob/master/README.md)
-8. Installer body-parser (npm )()(Pour gérer la requête HTTP POST dans Express.js version 4 et supérieure, vous devez installer un module middleware appelé body-parser.body-parser est un morceau de middleware express qui lit l'entrée d'un formulaire et le stocke comme un objet javascript accessible via req.body.)
-9. Install markdown (npm install markdown)
-7. Dans le fichier app.js stocké dans des variable tout les require des modules et middleware utilisés.
-8. Mettre sur papier l'ordre des opérations qui vont devoir être effectuées (UML)
-9. Faire un shéma pour voir quel fichier gère quoi et contient quel
-10. Pseudo-code
-11. On créer un un ficher package.json dans le dossier de notre application reprenant toutes les dépendances de notre application (cela permettra une mise à jour des modules et une maintenance plus rapide et sûr)
+* Créer un nouveau dossier de travail appellé "tptodolist" et me placer avec le terminal dans ce dossier de travail
+* On créer un un ficher package.json dans le dossier de notre application reprenant toutes les dépendances de notre application (cela permettra une mise à jour des modules et une maintenance plus rapide et sûr)
 
-```
+````json
+{
+    "name": "ma_todolist",
+    "version": "0.1.0",
+    "dependencies": {
+        "express": "~4.16.2",
+        "ejs": "~2.5.7",
+        "favicon": "~0.0.2",
+        "logging":"~3.2.0",
+        "markdown": "~0.4.0",
+        "morgan": "~1.9.0",
+        "serve-favicon" : "~2.4.5",
+	      "body-parser" : "~1.18.2",
+	      "cookie-session": "~2.0.0 - beta.3",
+    },
+    "author": "Marie-Ange Bouchat <bouchat.marieange@gmail.com>",
+    "description" : "Un gestionnaire de todolist ultra basique réalisé dans le cadre d'un TP du couurs node.js de OpenClassrooms"
+}
+````
+Petite remarque, le petit tilde ~ placer devant la version des modules permet d'autoriser les futurs patchs de ces modules mmais pas les nouvelles versions mineures ou majeures, ce qui garantit que leur API ne changera pas, et donc que notre code continuera à fonctionner même avec ces mises à jour.
+
+* Installation de toutes les dépendances avec la commande npm install
+    * Installer express (npm install express)
+    * Installer ejs (npm install ejs)
+    * Installer un middleware de logging (npm install morgan)
+    * Installer cookie-session (npm install cookie-session)(https://github.com/expressjs/cookie-session/blob/master/README.md) documentation: (https://www.npmjs.com/package/cookie-session)
+    * Installer body-parser (npm )()(Pour gérer la requête HTTP POST dans Express.js version 4 et supérieure, vous devez installer un module middleware appelé body-parser.body-parser est un morceau de middleware express qui lit l'entrée d'un formulaire et le stocke comme un objet javascript accessible via req.body.)
+    * Install markdown (npm install markdown)
+
+* Créer un fichier app.js
+
+* On commence par gérer les routes en listant ce que l'application doit pouvoir faire : lister les tâche (/todo) , ajouter une tâche (/todo/ajouter), supprimer une tâche en fonction de son id(/todo/supprimer/:id). On ajoute le code correspondant dans le fichier app.js
+
+````javascript
+// On commence par écrire les différentes routes qui corresponde chacune à une des tâches que l'application doit pouvoir réaliser
+// Route 1 : l'application doit pouvoir lister les tâches
+.get('/todo', function(req, res) {
+
+});
+
+// Route 2 : l'application doit pouvoir ajouter des tâches
+// Attention .post() et pas .get() . Les données de formulaire se transmette généralement avec la méthode post et pas get. On fait donc appel à .post() pour ajouter des tâches au lieu de faire appel à .get()
+.post('/todo/ajouter', function(req, res) {
+
+});
+
+// Route 3 : l'application doit pouvoir supprimer des tâche en fonction de leur n°d'ID
+.get('/todo/supprimer/:id', function(req, res) {
+
+});
+````
+
+* Nous aurons besoin d'un système de sessions. Pour cela nous allons utiliser le middleware cookie-session (installer le avec la commande npm install cookie) Voici la documentation: https://www.npmjs.com/package/cookie-session
+Le module cookie-session stocke les données de sessioin sur le client (pas sur le serveur) dans un cookie, tandis qu'un module comme express-session stocke seulement un identifiant de session sur le client dans un cookie et stocke les données de session sur le serveur, typipquement dans une base de données.
+Comment choisir quel module utilisé entre cookie-session et express-session:
+      * `cookie-session` ne nécessite aucune base de données/ressources côté serveur, bien que les données de session totales ne puissent pas dépasser la taille maximale des cookie du navigateur.
+      * ´cookie-session´ peut simplifier certains load-balanced scenario
+      * `cookie-session` peut être utilisé pour stocker une session "légère" et inclure un identifiant pour réduire les recherches dans la base de données.
+
+
+* Nous aurons besoin de récupérer les données du formulaire dans /todo/ajouter. Nous avons appris à récupérer des paramètres depuis l'URL (transmis en get), mais pas depuis les formulaires. Pour faire cela nous allons avoir besoin du middleware `body-parser` qui permet de récupérer des infos transmise par la méthode poste et accessible via req.body.nomDuChamp.
+
+
+
+* Créer un sous-dossier "views" contenant un fichier todoview.ejs pour gérer le template de views de la todolist avec ejs
+
+* Dans le fichier app.js stocké dans des variable tout les require des modules et middleware utilisés.
+* Mettre sur papier l'ordre des opérations qui vont devoir être effectuées (UML)
+* Faire un shéma pour voir quel fichier gère quoi et contient quel
+* Pseudo-code
