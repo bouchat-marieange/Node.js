@@ -1761,3 +1761,5 @@ Que signifie cette configuration pour mon projet ?
 * Le projet dépend de EJS version 0.6.5 et supérieures, jusqu'à 1.0.0 non inclus
 
 Le tilde dans le cas présent signifie qu'on accepte des mises à jour de la dépendance à condition qu'il s'agisse uniquement de patchs. Donc la version 0.7.0 est exclue car c'est une mise à jour plus importante.
+
+## Socket.io : passez au temps réel
