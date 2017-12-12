@@ -363,7 +363,7 @@ Les paramètres sont contenus dans la châine ?prenom=Robert&nom=Dupont. Pour r�
 ````javaScript
 url.parse(req.url).query
 ````
-On parse la chaîne. Le problème c'est qu'on renvoie toute la chaîne sans découper au préalable les différents paramètres. Heureusement, il existe un module Node.js qui s'en charge pour nous: querystring!
+On parse la chaîne. Le problème c'est qu'on renvoie toute la chaîne sans découper au préalable les différents paramètres. Heureusement, il existe un module Node.js qui s'en charge pour nous: serverstring!
 
 Incluez ce module:
 
@@ -553,7 +553,7 @@ server.on('close', function() {
 })
 ````
 
-Voici un exemple complet et concret. On va lancer un serveur et l'arrêter jsute après. On écoute l'évènement close qui survient lorsque le serveur est arrêter. On affiche un message dans al console quand le serveur s'apprête à s'arrêter.
+Voici un exemple complet et concret. On va lancer un serveur et l'arrêter jsute après. On écoute l'évènement close qui survient lorsque le serveur est arrêter. On affiche un message dans la console quand le serveur s'apprête à s'arrêter.
 
 ````javaScript
 var http = require('http');
@@ -861,15 +861,17 @@ Ce fichier JSON contient des paires clé-valeur:
 
 * name : c'est le nom de votre application. Restez simple, évitez espaces et accents.
 
-* version: c'est le numéro de version de votre application. il est composé d'un numéro de version majeure, de version mineure et de patch. Pour savoir quelle version des module est utilisée pour les renseignée, il faut taper dans le terminal positionné sur son dossier de travail la commande `npm list` (renvoie la liste des package local - uniquement pour ce dossier de travail) - `npm list -g` (renvoie la liste des package installer globalement). Attention taper cette commande avant de créer le fichier package.json sinon le terminal renvoie une erreur. On peut aussi récupérer la version d'un package spécifique en passant son nom en argument avec la commande `npm list grunt`
+* version: c'est le numéro de version de votre application. il est composé d'un numéro de version majeure, de version mineure et de patch. Pour savoir quelle version des module est utilisée pour les renseignée, il faut taper dans le terminal positionné sur son dossier de travail la commande `npm list` (renvoie la liste des package local - uniquement pour ce dossier de travail) - `npm list -g` (renvoie la liste des package installer globalement). Attention taper cette commande avant de créer le fichier package.json sinon le terminal renvoie une erreur. On peut aussi récupérer la version d'un package spécifique en passant son nom en argument avec la commande `npm list nomdumodule`
 
-* dependencies: c'es tun tableau listant les noms des modules dont a besoin votre application pour fonctionner ains que les versions compatibles.
+* dependencies: c'est un tableau listant les noms des modules dont a besoin votre application pour fonctionner ains que les versions compatibles.
 
 Petite remarque, le petit tilde ~ placer devant la version des modules permet d'autoriser les futurs patchs de ces modules mmais pas les nouvelles versions mineures ou majeures, ce qui garantit que leur API ne changera pas, et donc que notre code continuera à fonctionner même avec ces mises à jour.
 
 Le fichier peut être beaucoup plus complet que cela, je ne vous ai montré ici que les valeurs essentielles. Pour tout connaître sur le fonctionnement de ce fichier package.json, je vous recommande cette cheat sheet: http://package.json.nodejitsu.com/
 http://browsenpm.org/package.json
 https://docs.npmjs.com/getting-started/using-a-package.json
+
+Il est possible de générer automatiquement le fichier package.json de votre appli en tapant dans le terminal placé dans votre dossier de travail npm init. Cette commande crée un fichier package.json après vous avoir demandé quelques infos comme le nom de votre projet, sa version, l'auteur, la description etc... de votre projet. Il est indispensable de créer ce fichier avec la commande npm init au début dès le début du travail sur votre projet car vous pourrez alors à chaque installation d'un nouveau module, l'installer avec la commande `npm install NomDuModule --save` qui ajoutera le nom du module et sa version automatiquement à la liste des dépendances dans le fichier package.json. Cela permettra de mettre à jour en une opération toutes les dépendances de votre projet avec un simple `npm update`. Si on utilise la commande `npm update --save` cela mettra aussi à jour le fichier package.json avec la nouvelle version.
 
 #### Le fonctionnement des numéros de version
 
@@ -1418,7 +1420,8 @@ A vous de jouer !
 ## Les étapes que j'ai effectuées pour réalisé le TP Todolist
 
 * Créer un nouveau dossier de travail appellé "tptodolist" et me placer avec le terminal dans ce dossier de travail
-* On créer un un ficher package.json dans le dossier de notre application reprenant toutes les dépendances de notre application (cela permettra une mise à jour des modules et une maintenance plus rapide et sûr)
+* Taper dans la console npm init pour créer automatiquement un fichier package.json qui mettra à jour en une opération tous les modules que je vais installer. Attention lors de l'installation de chaque module pour mon projet, je dois utiliser la commande npm install NomDuModule --save pour que celui-ci soit ajouter à la liste des modules repris dans le fichier package.json.
+C'est beaucoup plus simple que de créer un ficher package.json dans le dossier de notre application reprenant toutes les dépendances de notre application et leur version reprise en tapant npm list et cela permettra une mise à jour des modules et une maintenance plus rapide et sûr.
 
 ````json
 {
@@ -1523,7 +1526,8 @@ Voici le code du fichier todo.ejs se trouvant dans le sous-dossier views du doss
 
 </html>
 ````
-Voici les explications de ce code:
+**Voici les explications de ce code:**
+
 Les tâches sont affichées sous la forme d'un liste qui est mise en forme en html avec les balises <li></li> contenue dans des balises <ul></ul>
 <ul>
   <li></li>
@@ -1548,11 +1552,9 @@ Exemple de boucle foreach en javascript
         // c -->
 
 
-<!-- Appliquons cela à la boucle de la todolist  en utilisant la syntaxe particulière utilisée avec le module ejs -->
-<!-- On place les données récupérée dans une liste en les plaçant entre des balises <li>  -->
-<!-- Tout d'abord on récupère l'index de la tache dans l'url et on le place dans un lien <a> à l'intérieur du <li> -->
-<!-- Le lien <a> est fait vers la page /todo/supprimer/<%= index %> c'est la page qui gère la suppression des tâches. -->
-<!-- A la suite du lien <a> on affiche la tâche correspondante <%= todo %>  -->
-<!-- La boucle forEach va ainsi afficher toutes les tâches stockées dans tableau todolist en y associant leur id pour permettre de les supprimer. -->
-
-* Dans le fichier app.js stocké dans des variable tout les require des modules et middleware utilisés.
+* Appliquons cela à la boucle de la todolist  en utilisant la syntaxe particulière utilisée avec le module ejs <%  %> (pour le code à exéxuter en javascript) et <%= %> (insére de html)
+* On place les données récupérée dans une liste en les plaçant entre des balises <li>
+out d'abord on récupère l'index de la tache dans l'url et on le place dans un lien <a> à l'intérieur du <li>
+* Le lien <a> est fait vers la page /todo/supprimer/<%= index %> c'est la page qui gère la suppression des tâches.
+* A la suite du lien <a> on affiche la tâche correspondante <%= todo %>
+* La boucle forEach va ainsi afficher toutes les tâches stockées dans tableau todolist en y associant leur id pour permettre de les supprimer.

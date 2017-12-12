@@ -19,9 +19,12 @@ app.use(session({secret: 'todotopsecret'}))
 
 // La liste des tâches est stockée dans un array (tableau). Comme JavaScript n'apprécie pas qu'on essaie de parcourir des arrays qui n'existent pas,
 //On va créer un middleware qui crée automatiquement un array (tableau) vide si le visiteur n'a pas de todolist (parce qu'il vient de commencer sa session par exemple)
+// Cette fonction middleware recoit la requête, la réponse et la prochaine fonction à exécuter. Ce middle ware que j'ai crée à une fonction toute simple, celle de vérifier qu'il y a une todolist dans la session et si ce n'est pas le cas, il crée un arrya vide [].Cela évite pas mal d'erreurs par la suite.
+// La création d'un middleware est le seul moyen à ma disposition pour exécuter des fonctionnalités avant le chargement de n'importe quelle page.
+// Et pour que le middleware "passe le bébé à son voisin", je dois définir impérativement par un appel à next() (la fonction suivante). Dans le cas présent, next() fait référence à .get('/todo',function(){})
 .use(function(req, res, next){
-    if (typeof(req.session.todolist) == 'undefined') {
-        req.session.todolist = [];
+    if (typeof(req.session.todolist) == 'undefined') { // Si pas encore de session et donc pas de tableau todolist à parcourir, alors on crée un tableau todolist vide todolist = []; que l'on stocke dans la session
+        req.session.todolist = [];// On
     }
     next();
 })
@@ -36,7 +39,7 @@ app.use(session({secret: 'todotopsecret'}))
 // Attention .post() et pas .get() . Les données de formulaire se transmette généralement avec la méthode post et pas get. On fait donc appel à .post() pour ajouter des tâches au lieu de faire appel à .get()
 .post('/todo/ajouter/', urlencodedParser, function(req, res) {
     if (req.body.newtodo != '') {
-        req.session.todolist.push(req.body.newtodo);
+        req.session.todolist.push(req.body.newtodo); // On ajoute des éléments à la fin du tableau avec push()
     }
     res.redirect('/todo');
 })
@@ -44,9 +47,9 @@ app.use(session({secret: 'todotopsecret'}))
 // Route 3 : l'application doit pouvoir supprimer des tâche en fonction de leur n°d'ID
 .get('/todo/supprimer/:id', function(req, res) {
     if (req.params.id != '') {
-        req.session.todolist.splice(req.params.id, 1);
+        req.session.todolist.splice(req.params.id, 1); suppression d'éléments du tableau avec .splice()
     }
-    res.redirect('/todo');
+    res.redirect('/todo');//redirige le visiteur vers la liste (/todo) après un ajout ou une suppression d'élément, avec res.redirect('/todo')
 })
 
 

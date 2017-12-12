@@ -58,7 +58,7 @@
     //Cette méthode affiche le message spécifique à chaque page + le nom et prenom récupéré en get sauf si c'est la 404 en apellant la fonction affiche_qui()
         var http = require('http');
         var url = require('url');
-        var querystring = require('querystring');
+        var querystring = require('querystring');//permet de stocker dans un tableau (array) toutes les valeur récupérées dans l'url pour pouvoir les utiliser
 
         var server = http.createServer(function(req, res) {
 
