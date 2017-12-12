@@ -7,7 +7,7 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false }); // on utilise
 var app = express(); // on crée un objet app en appelant la fonctionc express()
 
 
-// On commencen par mettre en place le systeme de session
+// On commence par mettre en place le systeme de session
 // Avec le module cookie-session, on va mettre un place un système de session pour notre application
 // Ce module middleware stocke les données de session sur le client (et non sur le serveur) dans un cookie
 // cookie-session ne nécessite aucune base de données / ressources côté serveur, bien que les données de session totales ne puissent pas dépasser la taille maximale des cookies du navigateur.
@@ -30,24 +30,28 @@ app.use(session({secret: 'todotopsecret'}))
 })
 
 // On écrit les différentes routes qui corresponde chacune à une des tâches que l'application doit pouvoir réaliser
-// Route 1 : l'application doit pouvoir lister les tâches
+// Route 1 : l'application doit pouvoir lister les tâches - On affiche la todolist et le formulaire
 .get('/todo', function(req, res) {
     res.render('todo.ejs', {todolist: req.session.todolist});
 })
 
-// Route 2 : l'application doit pouvoir ajouter des tâches
+// Route 2 : l'application doit pouvoir ajouter des tâches - On ajoute un élément à la todolist
 // Attention .post() et pas .get() . Les données de formulaire se transmette généralement avec la méthode post et pas get. On fait donc appel à .post() pour ajouter des tâches au lieu de faire appel à .get()
 .post('/todo/ajouter/', urlencodedParser, function(req, res) {
-    if (req.body.newtodo != '') {
-        req.session.todolist.push(req.body.newtodo); // On ajoute des éléments à la fin du tableau avec push()
+    if (req.body.newtodo != '') {//les requêtes entrantes sont récupérée à partir de données transmise par la methode post par le middleware body-parser dans ma proproété appelé req.body (cfr doc: https://www.npmjs.com/package/body-parser)
+        req.session.todolist.push(req.body.newtodo); // On ajoute des éléments à la fin du tableau déja stocké dans la session de l'utilisateur avec la méthode push() qui permet d'ajouter une ou plusieurs entrée à la fin d'un tableau et retourne la nouvelle taille du tableau. Cette méthode prend en paramètre les éléments à ajouter au tableau, c'est à dire la tache récupérée par la méthode post à partir du formulaire grâce au middleware body-parser
     }
     res.redirect('/todo');
 })
 
 // Route 3 : l'application doit pouvoir supprimer des tâche en fonction de leur n°d'ID
 .get('/todo/supprimer/:id', function(req, res) {
-    if (req.params.id != '') {
-        req.session.todolist.splice(req.params.id, 1); suppression d'éléments du tableau avec .splice()
+    if (req.params.id != '') { // Si on le paramètre id récupérée dans l'url n'est pas vide, alors effectuer le code qui suit
+        req.session.todolist.splice(req.params.id, 1); //suppression d'éléments du tableau avec .splice.
+        //La methode splice() supprime un ou plusieurs éléments du tableau.
+        //Elle prend en premier argument l'index à partir duquel on commence la suppression et en deuxième argument le nombre d'éléments à supprimer.
+        //Après cette opération, elle réindexe les éléments du tableau, ce qui n'est pas le cas de la méthode delete qui supprime les éléments du tableau mais ne le restructure pas après et laisse de mot clé undefined à la place des élément supprimé, indiquant que cet élément supprimé est à présent non défini.
+        //Il est donc préférable dans ce cas d'utiliser la méthode slice()
     }
     res.redirect('/todo');//redirige le visiteur vers la liste (/todo) après un ajout ou une suppression d'élément, avec res.redirect('/todo')
 })
@@ -59,19 +63,3 @@ app.use(session({secret: 'todotopsecret'}))
 })
 
 app.listen(8080);
-
-// // On s'occupe du logging en premier car c'est ce qui va décider le contenu de la liste qui va s'afficher en fonction de l'utilisateur
-// app.use(morgan('combined')) // Active le middleware de logging
-// .use(express.static(__dirname + '/public')) // Indique que le dossier /public contient des fichiers statiques (middleware chargé de base)
-//
-// // Le middleware de loggin renvoie la réponse? ou doit directement renvoyé la vue?
-// .use(function(req, res){ // Répond enfin
-//   res.send('Hello');
-// });
-//
-// //Se charge du rendu visuel de la page avec module ejs avec le html (il faut pour cela récupérer l'utilisateur loggé) placé dans le fichier todoview.ejs
-// app.get('/public/:user', function(req, res) {
-//     res.render('todoview.ejs', {utilisateur: req.params.user});
-// });
-//
-// app.listen(8080);

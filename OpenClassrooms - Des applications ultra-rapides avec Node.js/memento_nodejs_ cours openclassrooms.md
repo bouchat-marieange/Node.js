@@ -873,6 +873,8 @@ https://docs.npmjs.com/getting-started/using-a-package.json
 
 Il est possible de générer automatiquement le fichier package.json de votre appli en tapant dans le terminal placé dans votre dossier de travail npm init. Cette commande crée un fichier package.json après vous avoir demandé quelques infos comme le nom de votre projet, sa version, l'auteur, la description etc... de votre projet. Il est indispensable de créer ce fichier avec la commande npm init au début dès le début du travail sur votre projet car vous pourrez alors à chaque installation d'un nouveau module, l'installer avec la commande `npm install NomDuModule --save` qui ajoutera le nom du module et sa version automatiquement à la liste des dépendances dans le fichier package.json. Cela permettra de mettre à jour en une opération toutes les dépendances de votre projet avec un simple `npm update`. Si on utilise la commande `npm update --save` cela mettra aussi à jour le fichier package.json avec la nouvelle version.
 
+Très utile: lorsque vous télécharger un projet contenant le ficheir package.json il vous suffit de taper la commande npm install pour installer en une seule fois tous les modules et les dépendances nécessaires pour faire fonctionner l'application.
+
 #### Le fonctionnement des numéros de version
 
 Pour bien gérer les dépendances et savoir mettre à jour le numéro de version de son application, il faut savoir comment fonctionnent les numéros de version avec Node.js. Il y a pour chaque application :
@@ -1485,7 +1487,79 @@ Comment choisir quel module utilisé entre cookie-session et express-session:
 
 * Nous aurons besoin de récupérer les données du formulaire dans /todo/ajouter. Nous avons appris à récupérer des paramètres depuis l'URL (transmis en get), mais pas depuis les formulaires. Pour faire cela nous allons avoir besoin du middleware `body-parser` qui permet de récupérer des infos transmise par la méthode poste et accessible via req.body.nomDuChamp.
 
-* Créer un sous-dossier "views" contenant un fichier todoview.ejs pour gérer le template de views de la todolist avec une extension .ejs
+* Créer un sous-dossier "views" contenant un fichier todo.ejs pour gérer le template de views de la todolist avec une extension .ejs
+
+Voici le code commenté et expliqué du fichier app.js situé à la racine du dossier:
+
+````javascript
+
+var express = require('express'); //on demande l'inclusion d'Express, le framework Node.js qui permet de réaliser des applications plus facilement. Ne pas oublier d'installer express dans le dossier de travail avec la commande npm install express (cela créer un dossier node_modules qui contient les fichiers du framework dans le dossier de travail)
+var session = require ('cookie-session'); // Charge le middleware de sessions. On demande l'inclusion du module cookie-session préalablement installé avec npm install cookie-session
+var bodyParser = require ('body-parser'); // Charge le middleware de gestion des paramètres. On demande l'inclusion du module body-parser qui va nous permettre de récupérer les infos transmise avec la méthode poste à partir du formulaire d'ajout de tâches dans la todolist.
+var urlencodedParser = bodyParser.urlencoded({ extended: false }); // on utilise middleware bodyParser qui utiiser avec l'option bodyParser.urlendocded, qui analyse les urlencoded et récupère les content-type header d'un certain type. Le infos sur récupéré dans un objet req.body qui contient des paire de clé-valeur. La valeur peut être une chaine ou un tableau (when extended is false) ou un autre type (when extended is true)
+
+
+var app = express(); // on crée un objet app en appelant la fonctionc express()
+
+
+// On commencen par mettre en place le systeme de session
+// Avec le module cookie-session, on va mettre un place un système de session pour notre application
+// Ce module middleware stocke les données de session sur le client (et non sur le serveur) dans un cookie
+// cookie-session ne nécessite aucune base de données / ressources côté serveur, bien que les données de session totales ne puissent pas dépasser la taille maximale des cookies du navigateur.
+// Ce middleware va attacher la propriété `session` à `req`, qui fournit un objet représentant la session chargée
+// Cette session est soit une nouvelle session si aucune session valide n'a été fournie dans la requête , soit une session chargée à partir de la requête.
+//le paramètre ´secret´ envoyé au module de session est obligatoire, il permet de sécuriser les cookies de session. Envoyer la valeur de votre choix. D'autres options peuvent être envoyée comme la durée de vie du cookie de session (par défaut, la session durera tant que le navigateur restera ouvert) - cfr documentation : https://www.npmjs.com/package/cookie-session
+app.use(session({secret: 'todotopsecret'}))
+
+
+// La liste des tâches est stockée dans un array (tableau). Comme JavaScript n'apprécie pas qu'on essaie de parcourir des arrays qui n'existent pas,
+//On va créer un middleware qui crée automatiquement un array (tableau) vide si le visiteur n'a pas de todolist (parce qu'il vient de commencer sa session par exemple)
+// Cette fonction middleware recoit la requête, la réponse et la prochaine fonction à exécuter. Ce middle ware que j'ai crée à une fonction toute simple, celle de vérifier qu'il y a une todolist dans la session et si ce n'est pas le cas, il crée un arrya vide [].Cela évite pas mal d'erreurs par la suite.
+// La création d'un middleware est le seul moyen à ma disposition pour exécuter des fonctionnalités avant le chargement de n'importe quelle page.
+// Et pour que le middleware "passe le bébé à son voisin", je dois définir impérativement par un appel à next() (la fonction suivante). Dans le cas présent, next() fait référence à .get('/todo',function(){})
+.use(function(req, res, next){
+    if (typeof(req.session.todolist) == 'undefined') { // Si pas encore de session et donc pas de tableau todolist à parcourir, alors on crée un tableau todolist vide todolist = []; que l'on stocke dans la session
+        req.session.todolist = [];// On
+    }
+    next();
+})
+
+// On écrit les différentes routes qui corresponde chacune à une des tâches que l'application doit pouvoir réaliser
+// Route 1 : l'application doit pouvoir lister les tâches - On affiche la todolist et le formulaire
+.get('/todo', function(req, res) {
+    res.render('todo.ejs', {todolist: req.session.todolist});
+})
+
+// Route 2 : l'application doit pouvoir ajouter des tâches - On ajoute un élément à la todolist
+// Attention .post() et pas .get() . Les données de formulaire se transmette généralement avec la méthode post et pas get. On fait donc appel à .post() pour ajouter des tâches au lieu de faire appel à .get()
+.post('/todo/ajouter/', urlencodedParser, function(req, res) {
+    if (req.body.newtodo != '') {//les requêtes entrantes sont récupérée à partir de données transmise par la methode post par le middleware body-parser dans ma proproété appelé req.body (cfr doc: https://www.npmjs.com/package/body-parser)
+        req.session.todolist.push(req.body.newtodo); // On ajoute des éléments à la fin du tableau déja stocké dans la session de l'utilisateur avec la méthode push() qui permet d'ajouter une ou plusieurs entrée à la fin d'un tableau et retourne la nouvelle taille du tableau. Cette méthode prend en paramètre les éléments à ajouter au tableau, c'est à dire la tache récupérée par la méthode post à partir du formulaire grâce au middleware body-parser
+    }
+    res.redirect('/todo');
+})
+
+// Route 3 : l'application doit pouvoir supprimer des tâche en fonction de leur n°d'ID
+.get('/todo/supprimer/:id', function(req, res) {
+    if (req.params.id != '') { // Si on le paramètre id récupérée dans l'url n'est pas vide, alors effectuer le code qui suit
+        req.session.todolist.splice(req.params.id, 1); //suppression d'éléments du tableau avec .splice.
+        //La methode splice() supprime un ou plusieurs éléments du tableau.
+        //Elle prend en premier argument l'index à partir duquel on commence la suppression et en deuxième argument le nombre d'éléments à supprimer.
+        //Après cette opération, elle réindexe les éléments du tableau, ce qui n'est pas le cas de la méthode delete qui supprime les éléments du tableau mais ne le restructure pas après et laisse de mot clé undefined à la place des élément supprimé, indiquant que cet élément supprimé est à présent non défini.
+        //Il est donc préférable dans ce cas d'utiliser la méthode slice()
+    }
+    res.redirect('/todo');//redirige le visiteur vers la liste (/todo) après un ajout ou une suppression d'élément, avec res.redirect('/todo')
+})
+
+
+/* On redirige vers la todolist si la page demandée n'est pas trouvée */
+.use(function(req, res, next){
+    res.redirect('/todo');
+})
+
+app.listen(8080);
+````
+
 
 Voici le code du fichier todo.ejs se trouvant dans le sous-dossier views du dossier de travail:
 
@@ -1526,7 +1600,7 @@ Voici le code du fichier todo.ejs se trouvant dans le sous-dossier views du doss
 
 </html>
 ````
-**Voici les explications de ce code:**
+**Voici les explications du code du fichier todo.ejs qui se charge de l'affichage dans le navigateur:**
 
 Les tâches sont affichées sous la forme d'un liste qui est mise en forme en html avec les balises <li></li> contenue dans des balises <ul></ul>
 <ul>
@@ -1558,3 +1632,18 @@ out d'abord on récupère l'index de la tache dans l'url et on le place dans un 
 * Le lien <a> est fait vers la page /todo/supprimer/<%= index %> c'est la page qui gère la suppression des tâches.
 * A la suite du lien <a> on affiche la tâche correspondante <%= todo %>
 * La boucle forEach va ainsi afficher toutes les tâches stockées dans tableau todolist en y associant leur id pour permettre de les supprimer.
+
+### Allez plus loin !
+
+Ma petite todolist est très basique. Vous pouvez lui ajouter de nombreuses fonctionnalités :
+
+* Modification des noms des tâches
+* Réagencement des tâches entre elles
+* Exportation CSV
+* Attribution d'une priorité et d'une date limite
+* Persistence de la todolist (stockage dans une base de données ou une base NoSQL)
+* Partage d'une todolist entre plusieurs personnes
+* Synchronisation de la todolist en temps réel entre les personnes sans avoir besoin de recharger la page
+* Certaines de ces fonctionnalités sont plus faciles à réaliser que d'autres. Pour d'autres, il vous faudra découvrir et utiliser de nouveaux modules.
+
+Vous avez de quoi vous amuser pendant un bon petit moment, bon courage !

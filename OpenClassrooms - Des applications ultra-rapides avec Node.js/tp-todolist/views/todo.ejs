@@ -14,12 +14,14 @@
 <body>
     <h1>Ma todolist</h1>
 
-      <!-- Affichage de toutes les tâches (todo) et des valeurs d'index (index) qui leur sont associés contenues dans le tableau (todolist) -->
+      <!-- Affichage de toutes les tâches (todo) et des valeurs d'index (index) qui leur sont associés contenues dans le tableau (todolist) avec un foreach pour faire une boucle et afficher toutes les valeurs contenues dans le tableau-->
       <ul>
       <% todolist.forEach(function(todo, index) { %> <!-- On réalise une boucle forEach dans un tableau qui s'appelle todolist et on récupère en arguments todo (la tâche) et index (l'index lié à cette tâche qui permettra de la supprimer) -->
           <li><a href="/todo/supprimer/<%= index %>">✘</a> <%= todo %></li> <!-- On place dans le <li> sous forme de lien l'index récupéré dans l'url de todo/supprimer/index et sous forme de texte du <li> le nom de la tâche -->
       <% }); %>
       </ul>
+      <!-- La croix pour supprimer un élément situé dans chaque <li> est un simple caractère Unicode  On peut trouver de très nombreux caractères unicode en faisant une recherche Google du type "unicode cross", "unicode smiley", "unicode plane", "unicode arrow", etc. -->
+      <!-- Pour insérer un caractère unicode directement dans votre code, il suffit de copier son image et de la coller dans votre code (exemple : http://xahlee.info/comp/unicode_crosses.html ) -->
 
       <!-- Formulaire d'ajout de tâche à la liste -->
       <form method="post" action="/todo/ajouter/"><!-- On envoie à la page de traitement /todo/ajouter/ les tâches ajoutées via le formulaire avec la méthode post (nécessité du middleware body-parse)-->
