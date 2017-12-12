@@ -1647,3 +1647,117 @@ Ma petite todolist est très basique. Vous pouvez lui ajouter de nombreuses fonc
 * Certaines de ces fonctionnalités sont plus faciles à réaliser que d'autres. Pour d'autres, il vous faudra découvrir et utiliser de nouveaux modules.
 
 Vous avez de quoi vous amuser pendant un bon petit moment, bon courage !
+
+
+## Quizz 2
+
+Votre score
+90%
+Bravo ! Vous avez réussi cet exercice !
+
+### Question 1
+
+Comment appelle-t-on la fonction qui doit être appelée lorsqu'un évènement survient ?
+
+
+* La fonction de callback (v)
+* La fonction d'after-event
+* La fonction anonymous
+
+On parle de callback pour une fonction qui est automatiquement appelée lorsqu'un évènement survient.
+
+### Question 2
+
+Vrai ou faux ? Une fonction peut être appelée par deux évènements différents.
+
+* Vrai (v)
+* Faux
+
+La fonction de callback peut être associée à autant d'évènements qu'on le souhaite.
+
+### Question 3
+
+Vrai ou faux ? On peut associer plusieurs fonctions qui doivent être appelées après un même évènement.
+
+* Vrai (v)
+* Faux
+
+On peut associer autant de fonctions de callback qu'on le souhaite à un même évènement.
+
+### Question 4
+
+Qui peut émettre des évènements ?
+
+* Uniquement les fonctions de base de Node.js
+* Uniquement les fonctions de base et les bibliothèques officielles
+* Tout le monde, même nous (v)
+
+Tout le monde peut émettre des évènements avec Node.js : c'est même un des principes de base qui fait la puissance de Node !
+
+### Question 5
+
+Comment s'appelle le gestionnaire de paquets de Node.js ?
+
+* apt-get
+* npm  (v)
+* nodepackage
+
+npm est le Node Package Manager : on peut y télécharger des centaines de bibliothèques !
+
+### Question 6
+
+A quoi sert le paramètre -g qu'on ajoute quand on veut installer certains paquets ?
+
+* Il impose une installation silencieuse
+* Il impose une installation valable pour tout l'ordinateur du paquet (v)
+* Il impose une installation groupée de plusieurs paquets
+
+Utilisez -g uniquement lorsqu'on vous indique que c'est possible et conseillé. Sinon, npm installe le paquet dans le répertoire de votre projet ce qui est amplement suffisant dans la plupart des cas.
+
+### Question 7
+
+Mon projet Node.js est en version 4.5.9. Je viens de corriger un bug, sans ajouter de fonctionnalités ni casser le comportement existant. Quel doit être le nouveau numéro de version ?
+
+* 4.5.10 (v)
+* 4.6.0
+* 4.6.9
+* 5.0.1
+
+Le dernier numéro est réservé aux changements les plus mineurs (comme les bugfixes). C'est donc lui qui doit évoluer.
+
+### Question 8
+
+Quel est le nom du système de templates imposé par Express.js ?
+
+* EJS (x)
+* Handlebars
+* Twig
+* Aucun système de template n'est imposé (v)
+
+On peut utiliser le système de template que l'on veut !
+
+### Question 9
+
+Comment s'appelle le fichier qui définit un projet Node.js (son nom, ses dépendances...) ?
+
+* project.js
+* package.json  (v)
+* README
+* package.conf
+
+Le fichier package.json contient toutes les informations principales sur votre projet. C'est ce qui est utilisé par npm notamment pour indexer votre projet.
+
+### Question 10
+
+Que signifie cette configuration pour mon projet ?
+
+"dependencies": {
+    "ejs": "~0.6.5"
+}
+
+* Le projet dépend de EJS version 0.6.5 uniquement
+* Le projet dépend de EJS version 0.6.5 et supérieures, jusqu'à 0.7.0 non inclus (v)
+* Le projet dépend de EJS version 0.6.5 et supérieures, jusqu'à 0.7.0 inclus
+* Le projet dépend de EJS version 0.6.5 et supérieures, jusqu'à 1.0.0 non inclus
+
+Le tilde dans le cas présent signifie qu'on accepte des mises à jour de la dépendance à condition qu'il s'agisse uniquement de patchs. Donc la version 0.7.0 est exclue car c'est une mise à jour plus importante.
