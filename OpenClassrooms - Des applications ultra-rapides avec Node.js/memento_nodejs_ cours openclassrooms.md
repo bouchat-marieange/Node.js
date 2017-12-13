@@ -2154,3 +2154,93 @@ socket.on('message', function (message) {
 On va ouvrir 2 fenêtres à l'adresse url http://localhost:8080/ en donnant un pseudo différent à chaque fois. Cliquez ensuite sur le bouton "Embêter le serveur". Vous verrez dans la console que le pseudo de la personne qui a cliqué sur le bouton apparait ! Si problèle d'affichage des message ou message prompt ne s'affiche pas toujours, ouvrir une fenêtre à l'adresse http://localhost:8080/ dans Google Chrome et une autre fenêtre à la même adresse url http://localhost:8080/ dans Firefox par exemple.
 
 Il s'agit ici d'une application très basique pour essayer les fonctionnalités de socket.io. Elle ne fait rien d'interessant mais permet de comprendre le fonctionnement, à vous d'en faire quelque chose de plus utile et de plus passionnant en bidouillant avec les fonctionnalité que vous avez apprises.
+
+## TP : le super Chat
+
+Lorsque l'on a compris le fonctionnement de Node.js et de socket.io, un grand nombre de possibilité s'offre à nous, la création de Chat, de jeux, d'outils collaboratifs pour le travail, ...! On peut commencer par réaliser une application simple mais utile et efficace pour impressionner vos proches.
+
+Voici le résultat visuel du Chat que nous voudrions créer:
+
+![Le super Chat](https://user.oc-static.com/files/422001_423000/422453.png)
+
+On a volontairement ouvert 2 fenêtres, Celle de gauche est connectée sous le pseudo "mateo21" et celle de droite sous le pseudo "gérard".
+
+* Je demande le pseudo avec une boîte de dialogue lors de la connexion
+* J'affiche le pseudo de celui qui vient de se connecter à tout le monde dans le Chat (ex: "Gerard à rejoint le Chat!").
+* Lorsqu'on saisit un message, il est immédiatement affiché dans le navigateur sous le formulaire.
+
+### Comment réaliser cet exercice?
+
+Posons-nous maintenant les bonnes questions. De combien de questions va-t-on avoir besoin? De toute évidence, je dirai trois:
+
+* Un fichier package.json qui décrit les dépendances de votre projet Node.js (à créer avec la command npm init dans dossier travail).
+* Un fichier app.js pour l'application côté serveur en Node.js
+* Un fichier index.html qui contiendra la page web et le code côté client de gestion du Chat
+
+Concernant les modules extern)e, de quoi va-t-on avoir besoin? (Voici mes suggestions et les modules que j'utilise dans ma correction):
+
+* socket.io : c'est la base pour permettre de mettre en place notre Chat
+* express: on va se servir d'express pour mettre en forme la page coté client. Il n'est pas très compliqué de l'utiliser en combinaison de socket.io. Pour savoir comment faire consulter la documentation ici: https://socket.io/#how-to-use
+* ent: un tout petit module qui permet de protéger les chaînes de caractères envoyées par les visiteurs pour transformerle HTML en entitités. Cela permet d'éviter que vos visiteurs s'envoient du code javascript dans le Chat!
+
+Express et ent ne sont pas obligatoire pour faire fonctionner le Chat. On peut très bien faire sans, mais il facilite la maintenance du code (pour express.js) et ainsi que la sécurité (pour ent)
+
+On va donc installer chacun de ses 3 modules après avoir créer le fichier package.json avec la commande `npm init` lancée dans le dossier de travail.
+Pour installer les différents module, on va utiliser à chaque fois la commande:
+npm install nom_du_module --save
+Cela permet d'ajouter automatiquement le nom des dépendances (mocules ajoutés) au fichier package.json ainsi que la version utilisée. Il reste une manipulation à faire dans le fichier package.json pour éviter les problèmes lors de mise à jour ultérieur des modules et dépendances avec la commande `npm update`. Il faut remplacer devant la version des différents module le caractère ^ par un ~ pour éviter qu'une mise à jour majeure des modules puissent avoir lieu et pose des problème de compatibilité.
+
+On obtient donc maintenant pour le fichier package.json le code suivant:
+
+````javascript
+{
+  "name": "tp-super-chat",
+  "version": "1.0.0",
+  "description": "Réalisation du TP Super Chat dans le cadre du cours Node.js de OpenClassrooms",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Marie-Ange Bouchat <bouchat.marieange@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "ent": "~2.2.0",
+    "express": "~4.16.2",
+    "socket.io": "^2.0.4"
+  }
+}
+````
+
+### Le fichier app.js (coté serveur)
+
+Cette page web devra renvoyer une page web lorsqu'elle appellera le serveur. Il faut donc renvoyer le fichier "index.html" à vos visiteurs qui se connectent sur votre site.
+Avec express.js, la syntaxe est un peu différente mais aussi plus courte.
+
+En plus de la page web "classique", votre serveur Node.js devra géer les évènements de socket.io. A priori, on a besoin d'en gérer deux:
+
+* nouveau_client (ou tout autre nom que vous choisissez) : signale qu'un nouveau client vient de se connecter au Chat. Devrait transmettre son pseudo pour pouvoir informer les clients avec des messages comme "Robert a rejoint le Chat!"
+
+* message : signale  qu'un nouveau message a été posté. Votre rôle, en tant que serveur, sera tout simplement de le redistribuer aux autres clients connectés avec un petit broadcast. Tant qu'à faire, vous récupèrerez le pseudo du posteur dans une variable de session.
+(afin de l'afficher juste devant le message pour indiquer au autres clients qui a poster ce message)
+
+En fin de compte, le fichier app.js est assez court et simple.
+
+### Le fichier index.html
+
+C'est le fichier qui demande le plus de travail et va vous donner du fil à retordre. Vous allez devoir gérer pas mal de code JavaScript côté client.
+
+Commencez par structurer uen page HTML5 basique, avec un titre , un formulaire composé d'un champ de texte et d'un bouton, et une <div> ou une <section> qui contiendra les messages du Chat (par défaut, elle sera vide).
+
+A vous ensuite d'écrire le code JavaScript du client. Personnellement je l'ai placé en bas de la page(pour des raisons de performances c'est une habitude à prendre).On peut également mettre le code javascript dans uen fichier.js externe mais ce n'est pas le choix que nous avons fait ici.
+
+Ce code devra:
+
+* Se connecter à socket.io
+* Demander le pseudo au visiteur lors du chargement de la page (via un `prompt()` en JS, c'est le plus simple que j'ai trouvé) et envoyer un signal "nouveau_client".
+* Gérer la réception de signaux de type "nouveau_client" envoyés par le serveur. Cela signifique q'une nouveau client vient de se connecter. Affichez son nom dans un message, comme par exemple "robert a rejoint le Chat!".
+* Gérer la réception de signaux de type "message" envoyés par le serveur. Cela signifie qu'un autre client vient d'envoyer un message sur el Chat et donc q'uil vous faut l'afficher dans la page.
+* Gérer l'envoi du formulaire, lorsque le client veut envoyer un message aux autres personnes connectées. Il vous faudra récupérer le message saisi dans le formulaire en JavaScript, émettre un signal de type "message" au serveur pour qu'il le distribue aux autres clients, et aussi insérer ce message dans votre propre page. Et oui, n'oubliez pas que le broadcast du serveur envoie un message à toutes les autres personnes connectées mais pas à vous-mêmes... il faut donc mettre à jour votre propre zone de Chate.
+
+Avec toutes ces indications tenter à présent de rédiger le code nécessaire à l'éxécution de ce super chat.
+
+### correction
