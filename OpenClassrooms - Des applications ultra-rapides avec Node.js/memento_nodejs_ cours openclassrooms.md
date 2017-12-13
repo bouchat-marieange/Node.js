@@ -1892,4 +1892,83 @@ Intéressons-nous maintenant au client. Le fichier index.html est envoyé par le
 
 Remarque: J'ai placé volontairement le code JavaScript à la fin du code HTML. On pourrait le mettre dans la balise <head>, mias le placer à la fin du code HTML permet d'éviter que le chargement du Javascript ne bloque le chargement de la page HTML. Au final, cela donne l'impression d'une page web qui se charge plus rapidement.
 
-Dans une premier temsp, on fait récupérer au client le fichier socket.io
+Dans une premier temsp, on fait récupérer au client le fichier socket.io. Celui-ci est automatiquement fourni par le serveur node.js via le module socket.io (le chemin vers le fichier n'est donc pas choisi au hasard)
+
+````JavaScript
+<script src="/socket.io/socket.io.js"></script>
+````
+
+Le code qu'il contient permet de gérer la communication avec le serveur du côté clent, soit avec les WebSockets, soit avec l'une des autres méthodes si le navigateur ne les supporte pas.
+
+Ensuite, nous pouvons effectuer des actions du côté du client pour communiquer avec le serveur. POur le moment, j'ai fait quelque chose de très simple: je me suis contenté de me connecter au serveur. Celui-ci se trouve sur ma machine, d'où l'adresse http://localhost:8080 . Evidemment, sur le Web, il faudra adapter ce chemin pour indiquer l'adresse de votre site  (ex : http://monsite.com)
+
+````JavaScript
+var socket = io.connect('http://localhost:8080');
+````
+
+Pour tester le code, il nous suffit de lancer l'application avec la commande
+
+````code
+node app.js
+````
+
+On se rend ensuite dans notre navigateur à l'adresse où écoute Node.js : http://localhost:8080 dans notre cas. On voit s'afficher dans le navigateur le titre de la page <h1> de la page index.htlm "Communication avec socket.io !".  Dans le terminal, on puet voir qu'une connexion avec socket.ioest le serveur s'est établie, le terminal affiche des informations de débogage:
+
+````code
+$ node app.js
+   info  - socket.io started
+   debug - client authorized
+   info  - handshake authorized Z2E7aqIvOPPqv_XBn421
+   debug - setting request GET /socket.io/1/websocket/Z2E7aqIvOPPqv_XBn421
+   debug - set heartbeat interval for client Z2E7aqIvOPPqv_XBn421
+   debug - client authorized for
+   debug - websocket writing 1::
+Un client est connecté !
+````
+
+Super, Ca veut dire que notre code fonctionne ! Pour le moment il ne fait rient d'extraordinaire, mais les bases sont là. On va pouvoir commencer à échanger des messages avec le serveur.
+
+##### Envoi et réception de messages
+
+Maintenant que le client est connecté, on peut échanger des messages entre le client et le serveur. Il y a 2 cas de figure:
+
+* Le serveur veut envoyer un message au client
+* Le client veut envoyer un message au serveur
+
+###### Le serveur vuet envoyer un message au client
+
+Si on veut que le serveur envoie un message au client lorsqu'il vient de se connecter, pour lui confirmer que la connexion à bien fonctioné, Rajoutez ce code au fichier app.js
+
+````javascript
+io.sockets.on('connection', function (socket) {
+        socket.emit('message', 'Vous êtes bien connecté !');
+});
+````
+
+Lorsqu'on détecte une connexion, on émet un message au client avec socket.emit(). La fonction prend 2 paramètres:
+
+* Le type de message qu'on veut transmettre. Ici, mon message est de type "message". Il en existe d'autres types comme par exemple pour un jeu, on pourrait envoyer des messages de type "deplacement_joueur", "attaque_joueur",...
+* Le contenu du message. Vous y indiquer le message que vous voulez transmettre à l'utilisateur. Si vous voulez envoyez plusieurs données différentes avec votre message, regroupez-les sous forme d'objet comme ceci par exemple:
+
+````javascript
+io.sockets.on('connection', function (socket) {
+        socket.emit('message', { content: 'Vous êtes bien connecté !', importance: '1' });
+});
+````
+
+Pour que cela fonctionne, du côté index.html (le client) on va écouter l'arrivée de message de type "messsage":
+
+````html
+<script>
+    var socket = io.connect('http://localhost:8080');
+    socket.on('message', function(message) {
+        alert('Le serveur a un message pour vous : ' + message);
+    })
+</script>
+````
+
+Avec socket.on(), on écoute les messages de type "message". Lorsque des messages arrivent, on appelle la fonction de callback qui, ici, affiche simplement une boîte de dialogue qui affiche le message destiné à l'utilisateur.
+
+On obtient donc quelque chose comme ceci:
+
+![Message à l'utilisateur](https://user.oc-static.com/files/422001_423000/422339.png)

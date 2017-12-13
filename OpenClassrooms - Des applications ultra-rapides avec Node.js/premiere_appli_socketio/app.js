@@ -19,5 +19,9 @@ io.sockets.on('connection', function (socket) {
     console.log('Un client est connecté !');
 });
 
+// Lorsqu'on détecte une connexion, on émet un message au client avec socket.emit(). La fonction prend 2 paramètres (le type de message, ici "message" et le contenu du message)
+io.sockets.on('connection', function (socket) {
+        socket.emit('message', 'Vous êtes bien connecté !');
+});
 
 server.listen(8080);

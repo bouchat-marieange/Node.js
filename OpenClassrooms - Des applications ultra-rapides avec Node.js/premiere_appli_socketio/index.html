@@ -1,1 +1,33 @@
 <!-- Ceci est le fichier client, c'est lui qui se connecte au serveur et qui affiche les résultats dans le navigateur -->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Socket.io</title>
+    </head>
+
+    <body>
+        <h1>Communication avec socket.io !</h1>
+
+        <!-- On fait récupérer au client le fichier socket.io.js qui est automatiquement fourni par le serveur node.js via le module socket.io (d'où le chemin du fichier) -->
+        <!-- Le code qu'il contient permet de gérer la communication avec le serveur du côté clent, soit avec les WebSockets, soit avec l'une des autres méthodes si le navigateur ne les supporte pas -->
+        <script src="/socket.io/socket.io.js"></script>
+
+        <!-- Nous pouvons maintenant effectuer des actions du côté du client pour communiquer avec le serveur.  -->
+        <!-- J'ai fait quelque chose de très simple: je me suis contenté de me connecter au serveur.  -->
+        <!-- Celui-ci se trouve sur ma machine, d'où l'adresse http://localhost:8080 qu'il faudra adapter en la changeant pour l'adresse de votre site si celui-ci est en ligne (ex : http://monsite.com) -->
+        <script>
+            var socket = io.connect('http://localhost:8080');
+        </script>
+
+        <!-- Avec socket;on() on écoute les messages de type "message" provenant du serveur.
+        Lorsque des messages arrivent, on appelle la fonction de callback qui affiche une boite à dialogue contenant le message à destination de l'utilisateur -->
+        <script>
+            var socket = io.connect('http://localhost:8080');
+            socket.on('message', function(message) {
+                alert('Le serveur a un message pour vous : ' + message);
+            })
+        </script>
+    </body>
+</html>
