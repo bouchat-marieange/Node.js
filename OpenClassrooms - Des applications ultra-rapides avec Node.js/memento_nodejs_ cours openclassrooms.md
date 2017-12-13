@@ -1763,3 +1763,133 @@ Que signifie cette configuration pour mon projet ?
 Le tilde dans le cas présent signifie qu'on accepte des mises à jour de la dépendance à condition qu'il s'agisse uniquement de patchs. Donc la version 0.7.0 est exclue car c'est une mise à jour plus importante.
 
 ## Socket.io : passez au temps réel
+
+socket.io est une des bibliothèques les plus prisées par ceux qui développent avec Node.js, car elle permet de faire très simplement de la communication synchrone dans votre application (communication en temps réél).
+Cela permet par exempble de mettre en place très facilement un Chat sur votre site! Mais les possibilités de socket.io vont bien au-delà du Chat. Tout ce qui nécessite une communication immédiate entre les visiteurs de votre site peut en bénéficier. Cela peut être une brique de jeu à mettre en place dans un jeu, des personnage qui évoluent dans le navigateur sans avoir à recharger la page , etc...
+
+### Que fait socket.io?
+
+socket.io se base sur plusieurs techniques différentes qui permettent la communication en temps réel. La plus connue d'entre elles, et la plus récente est WebSocket. Attention WebSocket est apparu plus ou moins en même temps que HTML5 mias ce n'est pas du HTML, c'est une API JavaScript.
+
+WebSocket est une fonctionnalité supportée par l'ensemble des navigateurs récents. Elle permet un échange bilatéral synchrone entre le client et le serveur.
+
+Habituellement sur le Web, la communication est asynchrone. Le client envoie une requête au serveur, qui réceptionne la requête, la traite et renvoie une réponse au client. Le serveur ne peut pas décider de lui-même d'envoyer quelque chose au client (par exemple pour l'avertir "eh vous avez un nouveau message !"). Il faut que le client recharge la page ou fasse une action pour solliciter le serveur, car celui-ci n'a pas le droit de s'adresser au client tout seul.
+
+![connexion asynchrone](https://user.oc-static.com/files/422001_423000/422334.png)
+
+Cela était suffisant aux débuts du Web mais est devenu trop limitant avec l'évolution de celui-ci. On a besoin d'une communication plus réactive et immédiate.
+
+WebSocket est une nouveauté du Web qui permet de laisser une sorte de 'tuyau' de communication ouvert entre le client et le serveur. Le navigateur et le serveur restent connectés entre eux et peuvent échanger des messages dans un sens comme dans l'autre via ce "tuyau". Le serveur peut donc lui-même décider d'envoyer un message au client.
+
+![connexion synchrone](https://user.oc-static.com/files/422001_423000/422335.png)
+
+Attention, il ne faut pas confondre WebSocket et AJAX!
+AJAX permet effectivement au client et au serveur d'échanger des informations sans recharger la page, mais en AJAX c'est toujour le client qui demande et le serveur qui répond. Le serveur ne peut pas décider de lui-même d'envoyer des informations au client. Avec WebSocket, ça devient possible!
+
+socket.io nous permet d'utiliser les WebSockets très facilement. Et commet tous les navigateurs ne gèrent pas WebSocket, il est capable d'utiliser d'autres techniques de communication synchrones si elles sont gérées par le navigateur du client. Quand on va sur le site de socket.io, section "Browser support", on voit que socket.io détermine pour chaque client quelle est la méthode de communication temps réel la plus adaptée pour le client:
+
+* WebSocket
+* Adobe Flash socket
+* AJAX long polling
+* AJAX multipart streaming
+* Forever Iframe
+* JSONP polling
+
+Par exemple si le navigateur ne supporte pas WebSocket, mais que Flash est installé, socket.io passera pas Flash pour faire de la communication temps réel. Sinon, il peut utiliser d'autres techniques commme l'AJAX Long Polling (le client demande en continu au serveur s'il a des nouveautés pour lui, pas le plus "propre", ni le plus efficace mais ça marche) ou encore la "Forever Iframe" qui se base sur le iframe invisible qui se charge progressivement pour récupérer les nouveautés du serveur. La bonne nouvelle , c'est que vous n'avez pas besoin de connaître le détail du fonctionnement  de ces techniques, par contre c'est une bonne chose de connaître leur nom et de savoir qu'elles existent.
+
+Grâce à toutes ces différentes techniques de communication, socket.io supporte un très grand nombre de navigateurs , même anciens:
+
+* Internet Explorer 5.5+ (oui oui, vous avez bien lu !)
+* Safari 3+
+* Google Chrome 4+
+* Firefox 3+
+* Opera 10.61+
+* Safari sur iPhone et iPad
+* Le navigateur Android
+
+
+### Emettre et recevoir des messages avec socket.io
+
+Parlons peu, mais parlons bien. Comment utiliser socket.io?
+
+Installer socket.io en tapant dans le terminal (situé sur votre dossier de travail) la commande suivante:
+
+````code
+npm install socket.io
+````
+
+#### Premier code: un client se connecte
+
+Quand on utilise socket.io, on doit toujours s'occuper de deux fichiers en même temps:
+
+Le fichier serveur (ex: app.js) : c'est lui qui centralise et gère les connexions des différents clients connectés au site.
+
+Le fichier client (ex: index.html) : c'est lui qui se connecte au serveur et qui affiche les résultats dans le navigateur.
+
+##### Le serveur (app.js)
+
+J'ai volontairement séparé le code du serveur en deux parties: au début, on charge le serveur comme d'habitude (et on récupère et renvoie le contenu de la page index.html); ensuite, on charge socket.io et on gère les évènements de socket.io
+
+````JavaScript
+
+var http = require('http');
+var fs = require('fs');
+
+// Chargement du fichier index.html affiché au client
+var server = http.createServer(function(req, res) {
+    fs.readFile('./index.html', 'utf-8', function(error, content) {
+        res.writeHead(200, {"Content-Type": "text/html"});
+        res.end(content);
+    });
+});
+
+// Chargement de socket.io
+var io = require('socket.io').listen(server);
+
+// Quand un client se connecte, on le note dans la console
+io.sockets.on('connection', function (socket) {
+    console.log('Un client est connecté !');
+});
+
+
+server.listen(8080);
+````
+
+Ce code fait deux choses:
+
+* Il renvoie le fichier index.html quand un client demande à charger la page de son navigateur.
+
+* Il se prépare à recevoir  des requêtes via socket.io, on s'attend à recevoir un seul type de message: la connexion. Lorsqu'on se connecte via socket.io, on logge ici l'information dans la console.
+
+Imaginez-vous en tant que visiteur. Vous ouvrez votre navigateur à l'adresse où se trouve votre application (http://localhost:8080) dans ce cas-ci. On vous envoie le fichier index.html, la page se charge. Dans ce fichier (que nous allons voir juste après), un code JavaScript se connecte au serveur, cette fois pas en http mais via socket.io (donc via les WebSockets en général). Le client effectue donc 2 types de connexion:
+
+* Une connexion "classique" au serveur en HTTP pour charger la page index.html
+
+* Une connexion "temps réel" pour ouvrir un tunnel via les WebSockets grâce à socket.io.
+
+##### Le client (index.html)
+
+Intéressons-nous maintenant au client. Le fichier index.html est envoyé par le serveur node.js. C'est un fichier HTML tout ce qu'il y a de plus classique, si ce n'est qu'il contient un peu de code JavaScript qui permttra ensuite de communiquer avec le serveur en temps réel via socket.io:
+
+````html
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Socket.io</title>
+    </head>
+
+    <body>
+        <h1>Communication avec socket.io !</h1>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:8080');
+        </script>
+    </body>
+</html>
+````
+
+Remarque: J'ai placé volontairement le code JavaScript à la fin du code HTML. On pourrait le mettre dans la balise <head>, mias le placer à la fin du code HTML permet d'éviter que le chargement du Javascript ne bloque le chargement de la page HTML. Au final, cela donne l'impression d'une page web qui se charge plus rapidement.
+
+Dans une premier temsp, on fait récupérer au client le fichier socket.io

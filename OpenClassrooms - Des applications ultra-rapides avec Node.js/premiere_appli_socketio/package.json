@@ -1,0 +1,15 @@
+{
+  "name": "premiere_appli_socket",
+  "version": "1.0.0",
+  "description": "Ma première appli socket pour tester les fonctionnalité de socket.io dans le cadre du cours node.js de OpenClassrooms",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Marie-Ange Bouchat <bouchat.marieange@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "http": "0.0.0"
+  }
+}
