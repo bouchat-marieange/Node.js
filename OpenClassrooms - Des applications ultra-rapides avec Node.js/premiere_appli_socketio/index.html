@@ -10,6 +10,13 @@
     <body>
         <h1>Communication avec socket.io !</h1>
 
+          <!-- On crée un bouton "Embêter le serveur" qui envoie un message au serveur quand l'utilisateur clique dessus -->
+         <p><input type="button" value="Embêter le serveur" id="poke" /></p>
+
+
+        <!-- On inclus la bibliothèque jquery pour faciliter la récupération de l'évènement du clic sur le bouton "Embêter le serveur" mais ce n'est pas obligatoire, on peut le faire en pur JavaScript si on veut. -->
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
         <!-- On fait récupérer au client le fichier socket.io.js qui est automatiquement fourni par le serveur node.js via le module socket.io (d'où le chemin du fichier) -->
         <!-- Le code qu'il contient permet de gérer la communication avec le serveur du côté clent, soit avec les WebSockets, soit avec l'une des autres méthodes si le navigateur ne les supporte pas -->
         <script src="/socket.io/socket.io.js"></script>
@@ -19,14 +26,18 @@
         <!-- Celui-ci se trouve sur ma machine, d'où l'adresse http://localhost:8080 qu'il faudra adapter en la changeant pour l'adresse de votre site si celui-ci est en ligne (ex : http://monsite.com) -->
         <script>
             var socket = io.connect('http://localhost:8080');
-        </script>
+            // Connexion au serveur qui se trouve sur ma machine donc adresse http://localhost:8080 - ce chemin devra être adapté pour un site en ligne par exemple :http://monsite.com
+            //Avec socket;on() on écoute les messages de type "message" provenant du serveur.
+            // Lorsque des messages arrivent, on appelle la fonction de callback qui affiche une boite à dialogue contenant le message à destination de l'utilisateur
 
-        <!-- Avec socket;on() on écoute les messages de type "message" provenant du serveur.
-        Lorsque des messages arrivent, on appelle la fonction de callback qui affiche une boite à dialogue contenant le message à destination de l'utilisateur -->
-        <script>
-            var socket = io.connect('http://localhost:8080');
+            // Avec socket.io on envoie un message au serveur au moment où on clique sur le bouton "Embêter le serveur" - fonction callback (quand on clique sur le bouton, on envoie le message au serveur)
             socket.on('message', function(message) {
                 alert('Le serveur a un message pour vous : ' + message);
+            })
+
+            // Avec JQuery, on indique que lorsque l'on clique sur le bouton, on envoie une message de type "message" au serveur, assorti d'un contenu. Il faut configurer le coté serveur maintenant pour récupérer ce message. (cfr app.js)
+            $('#poke').click(function () {
+                socket.emit('message', 'Salut serveur, ça va ?');
             })
         </script>
     </body>

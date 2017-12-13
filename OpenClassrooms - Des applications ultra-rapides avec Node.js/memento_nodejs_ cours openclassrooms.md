@@ -1935,7 +1935,7 @@ Maintenant que le client est connecté, on peut échanger des messages entre le 
 * Le serveur veut envoyer un message au client
 * Le client veut envoyer un message au serveur
 
-###### Le serveur vuet envoyer un message au client
+###### Le serveur veut envoyer un message au client
 
 Si on veut que le serveur envoie un message au client lorsqu'il vient de se connecter, pour lui confirmer que la connexion à bien fonctioné, Rajoutez ce code au fichier app.js
 
@@ -1972,3 +1972,81 @@ Avec socket.on(), on écoute les messages de type "message". Lorsque des message
 On obtient donc quelque chose comme ceci:
 
 ![Message à l'utilisateur](https://user.oc-static.com/files/422001_423000/422339.png)
+
+###### Le client veut envoyer une message au serveur
+
+Maintenant, faisons l'inverse. On va ajouter un bouton dans la page web qui va permettre d'envoyer un message au serveur lorsque l'on clique dessus.
+
+Du côté du client (index.html) Je vais rajouter un bouton "Embêter le serveur". Lorsqu'on cliquera dessus, j'emettrai un message au serveur. Voici le code complet:
+
+````html
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Socket.io</title>
+    </head>
+
+    <body>
+        <h1>Communication avec socket.io !</h1>
+
+        <p><input type="button" value="Embêter le serveur" id="poke" /></p>
+
+
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:8080');
+
+            socket.on('message', function(message) {
+                alert('Le serveur a un message pour vous : ' + message);
+            })
+
+            $('#poke').click(function () {
+                socket.emit('message', 'Salut serveur, ça va ?');
+            })
+        </script>
+    </body>
+</html>
+````
+
+J'utilise JQuery pour des raisons pratiques et par habitude pour récupérer l'évènement du cliec sur le bouton, mais ce n'est absolument pas obligatoire. On peut faire ça en pur JavaScript si on veut.
+
+Le code utilisant JQuery est le suivant:
+
+````JavaScript
+$('#poke').click(function () {
+    socket.emit('message', 'Salut serveur, ça va ?');
+})
+````
+
+Dans ce code, on indique que lorsque l'on clique sur le bouton, on envoie un message de type "message" au serveur, assorti d'un contenu. Attention si on veut récuper ce message côté serveur, il faut adapter le code de app.js pour l'écoute des messages de type "message" dans la fonction de callback de la connexion:
+
+````JavaScript
+io.sockets.on('connection', function (socket) {
+    socket.emit('message', 'Vous êtes bien connecté !');
+
+    // Quand le serveur reçoit un signal de type "message" du client    
+    socket.on('message', function (message) {
+        console.log('Un client me parle ! Il me dit : ' + message);
+    });
+});
+````
+Lancez le code ! Cliquez sur le bouton "Embêter le serveur" dans la page et regarder dans la console (le terminal) du serveur. Vous devriez voir apparaitre ceci:
+
+````code
+Un client me parle ! Il me dit : Salut serveur, ça va ?
+````
+
+![Aperçu envoi message au serveur en cliquant sur bouton](https://user.oc-static.com/files/422001_423000/422390.png)
+
+### Communiquer avec plusieurs clients
+
+Dans la pratique on travaille rarement avec un serveur et un seul client. Dans la pratique, il y aura sûrement plusieurs clients connectés à votre application Node.js. Pour simuler ça en local, c'est très simple. Il suffit d'ouvrir deux onglets, chacun sur votre page http://localhost:8080 .  Le serveur verra 2 clients différents connectés.
+
+Quand on a plusieurs clients, il faut être capable:
+
+* D'envoyer des messages à tout le monde d'un seul coup. On appelle ça les broadcasts.
+* De se souvenir d'informations sur chaque client (comme son pseudo par exemple). On a besoins pour ça de **variables de session**
+
+Voici comment fonctionnent les variables de sessions.
