@@ -30,6 +30,10 @@
             //Avec socket;on() on écoute les messages de type "message" provenant du serveur.
             // Lorsque des messages arrivent, on appelle la fonction de callback qui affiche une boite à dialogue contenant le message à destination de l'utilisateur
 
+            var pseudo = prompt('Quel est votre pseudo ?'); // On affiche une fenêtre prompt demandant à l'utilisateur son pseudo
+            socket.emit('petit_nouveau', pseudo);// la valeur de pseudo encodée dans la fenêtre prompt par l'utilisateur est ensuite envoyée au serveur avec son type "petit_nouveau" et sa valeur "pseudo_entré_par_utilisateur"
+
+
             // Avec socket.io on envoie un message au serveur au moment où on clique sur le bouton "Embêter le serveur" - fonction callback (quand on clique sur le bouton, on envoie le message au serveur)
             socket.on('message', function(message) {
                 alert('Le serveur a un message pour vous : ' + message);

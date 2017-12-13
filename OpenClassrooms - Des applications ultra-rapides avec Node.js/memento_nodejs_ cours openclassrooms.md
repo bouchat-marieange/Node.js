@@ -2050,3 +2050,107 @@ Quand on a plusieurs clients, il faut être capable:
 * De se souvenir d'informations sur chaque client (comme son pseudo par exemple). On a besoins pour ça de **variables de session**
 
 Voici comment fonctionnent les variables de sessions.
+
+#### Envoyer un message à tous les clients (broadcast)
+
+Quand vous faites un `socket.emit()` du côté du serveur, vous envoyer uniquement un message au client avec qui vous êtes en train de discuter. Mais vous pouvez faire plus fort: vous pouvez envoyer un broadcast, c'est à dire un message destiné à tous les autres clients (excepté celui qui vient de solliciter le serveur)
+
+Prenons un cas:
+
+1. Le client A envoie un message au serveur
+2. Le serveur l'analyse
+3. Il décide de broadcaster ce message pour l'envoyer aux autres clients connectés : B et C
+
+![broadcast](https://user.oc-static.com/files/422001_423000/422340.png)
+
+Imaginez par exemple un Chat. Le client A écrit un message et l'envoie au serveur. Pour que les autres clients voient ce message, il doit le leur broadcaster.
+
+Comment faire?
+
+Dans le fichier app.js (serveur)
+
+Il suffit de faire un socket.broadcast.emit()
+
+````JavaScript
+socket.broadcast.emit('message', 'Message à toutes les unités. Je répète, message à toutes les unités.');
+````
+
+Ce qui se traduira dans notre fichier app.js par le code suivant:
+
+````JavaScript
+io.sockets.on('connection', function (socket) {
+	socket.emit('message', 'Vous êtes bien connecté !');
+	socket.broadcast.emit('message', 'Un autre client vient de se connecter !');//On broadcast ce message à tous les autres clients connectés lors de la connexion d'un client. De cette manière toutes les autres clients connectés recevront une message leur indiquant "Un autre client vient de se connecter !"
+
+	socket.on('message', function (message) {
+		console.log('Un client me parle ! Il me dit : ' + message);
+	});
+});
+````
+Essayer maintenant d'ouvrir 2 onglets (ou plus) sur votre page http://localhost:8080. Vous verrez que lorsqu'un nouveau client arrive, les autres pages réagissent instantanément pour dire: "Un autre client vient de se connecter" ! Les onglets switch de l'un à l'autre pour afficher les fenêtres de message indiquant qu'un autre client vient de se connecter" quand on rafraichit une des pages.
+
+### Les variables de session
+
+Lorsque vous aurez plusieurs clients connectés, vous allez vite vous rendre compte qu'il est délicat de les reconnaître. L'idéal serit de pouvoir mémoriser des informations sur charque client sous forme de variables de session... mais par defaut socket.io ne propose pas cette fonctionnalité.
+
+En fait les variables de sesssions doivent être gérées par une bibliothèque supplémentaires sous forme de middleware comme session.socket.io (c'est le même principe de middlewares qu'Express, on peut voir ça comme un plugins).
+
+Expliquer comment utiliser un middleware de gestion de session est assez long. Je vais donc vous proposer pour l'instant d'utiliser une astuce. Nous allons enregistrer directement l'information sous forme de variable dans l'objet socket de chaque client. Ca aura le mérite d'être simple à mettre en place.
+Attention, il s'agit d'une technique très simplifier pour tester rapidement. Cette méthode n'est pas la meilleure, il s'agit plutôt d'une bidouille pour démarrer. Si vous voulez gérer vraiment des sessions, utilisez plutôt un middleware comme session.socket.io (https://www.npmjs.com/package/session.socket.io)
+
+On veut donc demander au serveur de retenir des informations sur chaque client connecté. Comme ça, le client n'aura pas besoin de rappeler qui il est à chaque fois qu'il envoie un message!
+
+Pour stocker une variable de session côté serveur, on va écrire:
+
+````javascript
+socket.mavariable = mavariable;
+````
+
+Dans cet exemple, on stocke les données sous forme de variable dans l'objet `socket` corresondant au client (je vous rappelle qu'il y a 1 objet ´socket´ en mémoire sur le serveur pour chaque client).
+
+Pour ensuite récupéré cette information, il suffira de demander ce que contient `socket.mavariable`
+
+````javascript
+console.log(socket.mavariable);
+````
+
+Voilà, c'est assez simple! Essayons d'imaginer un cas pratique. Lorsq'un client se connecte, la page web va lui demander son pseudo. Le serveur stockera le pseudo en variable de session pour s'en souvenir lorsque le client cliquera sur "Embêter le serveur"
+
+Cela implique certaines modifications dans la page index.html (client) et dans la page appµ.js (serveur).
+
+##### La page web (index.html) émet un signal contenant le pseudo
+
+Au chargement de la page web, on va demander le pseudo du visiteur. On envoie ce pseudo au serveur via un signal de type "petit_nouveau" (je l'ai appelé comme ça pour le différencier des signaux de type "message"). Ce signal contient le pseudo du visiteur.
+
+Ce code s'insére dans la page index.html juste après le code de connexion au serveur:
+
+````javascript
+var pseudo = prompt('Quel est votre pseudo ?');// On affiche une fenêtre prompt demandant à l'utilisateur son pseudo
+socket.emit('petit_nouveau', pseudo);// la valeur de pseudo encodée dans la fenêtre prompt par l'utilisateur est ensuite envoyée au serveur avec son type "petit_nouveau" et sa valeur "pseudo_entré_par_utilisateur"
+````
+
+##### Le serveur (app.js) stocke le pseudo
+
+Le serveur doit récupérer ce signal. On écoute les signauxde type "petit_nouveau" et, quandon en reçoit, on sauvegarde le pseudo en variable de session: Ce code s'insère dans app.js juste après la partie concernant la connexion et l'envoi de message indiquant à l'utilisateur qu'il est bien connecté et le broadcast indiquant aux autres utilisateurs connecté, qu'"un nouveau client vient de se connecter".
+
+````javascript
+socket.on('petit_nouveau', function(pseudo) {
+    socket.pseudo = pseudo;
+});
+````
+
+##### Le serveur (app.js) se rappelle du pseudo quand on lui envoie un message
+
+Maintenant, on veut que le serveur se souvienne de nosu lorsqu'on l'embête en cliquant sur "Embêter le serveur" (ce qui provoque l'envoi d'un signal de type "message"). On va compléter la fonction de callback qui est appelée quand le serveur reçoit un "message":
+
+````javascript
+socket.on('message', function (message) {
+    console.log(socket.pseudo + ' me parle ! Il me dit : ' + message);
+});
+````
+
+**Test du code**
+
+On va ouvrir 2 fenêtres à l'adresse url http://localhost:8080/ en donnant un pseudo différent à chaque fois. Cliquez ensuite sur le bouton "Embêter le serveur". Vous verrez dans la console que le pseudo de la personne qui a cliqué sur le bouton apparait ! Si problèle d'affichage des message ou message prompt ne s'affiche pas toujours, ouvrir une fenêtre à l'adresse http://localhost:8080/ dans Google Chrome et une autre fenêtre à la même adresse url http://localhost:8080/ dans Firefox par exemple.
+
+Il s'agit ici d'une application très basique pour essayer les fonctionnalités de socket.io. Elle ne fait rien d'interessant mais permet de comprendre le fonctionnement, à vous d'en faire quelque chose de plus utile et de plus passionnant en bidouillant avec les fonctionnalité que vous avez apprises.
