@@ -13,7 +13,7 @@ Notez qu'il existe des **frameworks web comme Express** qui sont basés sur Node
 
 ## Pourquoi Node.js est-il si rapide?
 
-* moteur V8 de Google Chrome qui est réutilisé par Node.js, qui est optimisé et fiat de la compilation JIT (Just In Time). Il transforme le code Javascript très rapidement en code machine et l'optimise même grâce à différentes procédés (code inlining, copy elision, etc...)
+* moteur V8 de Google Chrome qui est réutilisé par Node.js, qui est optimisé et fait de la compilation JIT (Just In Time). Il transforme le code Javascript très rapidement en code machine et l'optimise même grâce à différentes procédés (code inlining, copy elision, etc...)
 
 * fonctionnement **non bloquant**. Dans le modèle **bloquant** les actions sont effectuées dans l'ordre. Une opération doit être terminée avant de commencée la suivante. Dans le fonctionnement non bloquant, les lignes de code ne sont pas exécutées dans l'ordre, mais grâce à une fonction callback on peut effectuer plusieurs opérations en même temps (donc plus rapidement) et ne pas devoir attendre qu'une opération soit terminée pour en commencé une autre. Dès que l'évènement que l'on a définit se produit alors la fonction callback exécute le code demandé, en attendant, on peut fait en parallèle d'autres opération.
 
