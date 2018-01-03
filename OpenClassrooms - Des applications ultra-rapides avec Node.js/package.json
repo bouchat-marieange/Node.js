@@ -2,6 +2,9 @@
     "name": "mon-app",
     "version": "0.1.0",
     "dependencies": {
-        "markdown": "~0.4"
+        "ejs": "^2.5.7",
+        "express": "^4.16.2",
+        "markdown": "^0.4.0",
+        "utf8": "^3.0.0"
     }
 }
