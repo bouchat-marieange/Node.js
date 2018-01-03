@@ -1,6 +1,6 @@
-var express = require('express'); Charger express
-var morgan = require('morgan'); // Charge le middleware morgan pour logging
-var favicon = require('serve-favicon'); // Charge le middleware de serve -favicon pour favicon
+var express = require('express'); //Charger express
+var morgan = require('morgan'); // Charge le middleware morgan pour logging (enregistreur de requête http) - à chercher et installer avec npm - la doc se trouve sur npm également pour ce middleware - https://www.npmjs.com/package/morgan
+var favicon = require('serve-favicon'); // Charge le middleware de serve -favicon pour favicon - https://www.npmjs.com/package/serve-favicon
 
 var app = express();
 
@@ -12,3 +12,5 @@ app.use(morgan('combined')) // Active le middleware de logging
 });
 
 app.listen(8080);
+
+//.use est ici un raccourci de app use
