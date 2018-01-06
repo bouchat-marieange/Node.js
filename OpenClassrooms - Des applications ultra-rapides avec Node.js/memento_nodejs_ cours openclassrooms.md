@@ -60,6 +60,16 @@ Grâce au modèle non bloquant le téléchargement des 2 fichiers est lancé imm
 
 Voir https://openclassrooms.com/courses/des-applications-ultra-rapides-avec-node-js/installer-node-js
 
+Pour installer Node.js 9 taper dans la console les 2 lignes de commandes qui suivent (source: https://nodejs.org/en/download/package-manager/):
+
+```
+curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+Depuis les versions les plus récentes de Node.js , NPM est installé en même temps automatiquement. NPM est le gestionnaire de paquets de Node.js qui permet de d'installer des nouvelles fonctionnalités en plus de celles fournies par le noyau de Node.js et en faisant cela d'étendre considérablement les possibilités de ce qu'il est possible de faire avec Node.js. Les modules qu'il est possible d'installer avec npm sont disponibles sur le site
+https://www.npmjs.com/. Il est possible sur ce site de trouver une foule de modules pour réaliser tout ce que l'on souhaite. Si on ne connait pas le nom du module, il suffit de taper dans le champs de recherche du site le type de chose que l'on veut faire par exemple: markdown. On optient alors toutes une serie de module. Pour voir la documentation de chacun d'eux et s'avoir comment les utiliser, il suffit de cliquer sur leur nom dans la liste.
+Il est egalement possible de faire une recherche des modules existants (qui s'accroit tout les jours avec les nouveaux modules postés par la communauté) en tapant directement dans la console par exemple npm search postgresql, cela affichera le nom de tout les modules permettant de d'intéragir avec postgresql, il suffira ensuite de se rendre sur le site npm pour voir la documentation du module et comment l'utiliser et l'installer en tapant dans la console npm install nomdumodule. Il est également possible de créer soit-même des modules et de les publier et les partager sur npm.
+
 ## Comment lancer un programme Node.js?
 
 Il suffit de taper dans la console node suivi du nom du fichier.js
@@ -2155,9 +2165,56 @@ On va ouvrir 2 fenêtres à l'adresse url http://localhost:8080/ en donnant un p
 
 Il s'agit ici d'une application très basique pour essayer les fonctionnalités de socket.io. Elle ne fait rien d'interessant mais permet de comprendre le fonctionnement, à vous d'en faire quelque chose de plus utile et de plus passionnant en bidouillant avec les fonctionnalité que vous avez apprises.
 
+### Un petit aide-mémoire Cheatsheet des commandes pour socket.io (https://socket.io/docs/emit-cheatsheet/)
+
+```javaScript
+io.on('connect', onConnect);
+
+function onConnect(socket){
+
+  // sending to the client
+  socket.emit('hello', 'can you hear me?', 1, 2, 'abc');
+
+  // sending to all clients except sender
+  socket.broadcast.emit('broadcast', 'hello friends!');
+
+  // sending to all clients in 'game' room except sender
+  socket.to('game').emit('nice game', "let's play a game");
+
+  // sending to all clients in 'game1' and/or in 'game2' room, except sender
+  socket.to('game1').to('game2').emit('nice game', "let's play a game (too)");
+
+  // sending to all clients in 'game' room, including sender
+  io.in('game').emit('big-announcement', 'the game will start soon');
+
+  // sending to all clients in namespace 'myNamespace', including sender
+  io.of('myNamespace').emit('bigger-announcement', 'the tournament will start soon');
+
+  // sending to individual socketid (private message)
+  socket.to(<socketid>).emit('hey', 'I just met you');
+
+  // sending with acknowledgement
+  socket.emit('question', 'do you think so?', function (answer) {});
+
+  // sending without compression
+  socket.compress(false).emit('uncompressed', "that's rough");
+
+  // sending a message that might be dropped if the client is not ready to receive messages
+  socket.volatile.emit('maybe', 'do you really need it?');
+
+  // sending to all clients on this node (when using multiple nodes)
+  io.local.emit('hi', 'my lovely babies');
+
+};
+
+```
+
+
 ## TP : le super Chat
 
 Lorsque l'on a compris le fonctionnement de Node.js et de socket.io, un grand nombre de possibilité s'offre à nous, la création de Chat, de jeux, d'outils collaboratifs pour le travail, ...! On peut commencer par réaliser une application simple mais utile et efficace pour impressionner vos proches.
+
+Il existe dans la documentation officiel de socket.io (https://socket.io/demos/chat/) un lien redirigeant vers un github dédié au code source d'un chat fait avec socket.io (https://github.com/socketio/socket.io/tree/master/examples/chat). Il existe aussi une partie de la documentation officielle expliquant toutes les étapes bien détaillées pour créer un chat avec socket.io dans la section Get started du site officiel de socket.io à cette adresse https://socket.io/get-started/chat/ . Cette version du chat diffère légèrement de la version présentée dans le TP de OpenClassrooms.
 
 Voici le résultat visuel du Chat que nous voudrions créer:
 
@@ -2171,13 +2228,13 @@ On a volontairement ouvert 2 fenêtres, Celle de gauche est connectée sous le p
 
 ### Comment réaliser cet exercice?
 
-Posons-nous maintenant les bonnes questions. De combien de questions va-t-on avoir besoin? De toute évidence, je dirai trois:
+Posons-nous maintenant les bonnes questions. De combien de fichiers va-t-on avoir besoin? De toute évidence, je dirai trois:
 
-* Un fichier package.json qui décrit les dépendances de votre projet Node.js (à créer avec la command npm init dans dossier travail).
+* Un fichier package.json qui décrit les dépendances de votre projet Node.js (à créer avec la command npm init dans dossier travail puis installer chaque module avec la commande npm install --save nomdumodule pour que le module s'ajoute automatiquement à la liste des dépendance avec sa version actuelle dans le fichier package.json. Ainsi lorsque l'on voudra utiliser ce projet, il suffira grâce au fichier package.json de taper la commande npm install et tout les modules faisant partie des dépendances inscrites dans le fichier package.json s'installeront automatiquement en une seule opération.
 * Un fichier app.js pour l'application côté serveur en Node.js
 * Un fichier index.html qui contiendra la page web et le code côté client de gestion du Chat
 
-Concernant les modules extern)e, de quoi va-t-on avoir besoin? (Voici mes suggestions et les modules que j'utilise dans ma correction):
+Concernant les modules externe, de quoi va-t-on avoir besoin? (Voici mes suggestions et les modules que j'utilise dans ma correction):
 
 * socket.io : c'est la base pour permettre de mettre en place notre Chat
 * express: on va se servir d'express pour mettre en forme la page coté client. Il n'est pas très compliqué de l'utiliser en combinaison de socket.io. Pour savoir comment faire consulter la documentation ici: https://socket.io/#how-to-use
@@ -2187,8 +2244,8 @@ Express et ent ne sont pas obligatoire pour faire fonctionner le Chat. On peut t
 
 On va donc installer chacun de ses 3 modules après avoir créer le fichier package.json avec la commande `npm init` lancée dans le dossier de travail.
 Pour installer les différents module, on va utiliser à chaque fois la commande:
-npm install nom_du_module --save
-Cela permet d'ajouter automatiquement le nom des dépendances (mocules ajoutés) au fichier package.json ainsi que la version utilisée. Il reste une manipulation à faire dans le fichier package.json pour éviter les problèmes lors de mise à jour ultérieur des modules et dépendances avec la commande `npm update`. Il faut remplacer devant la version des différents module le caractère ^ par un ~ pour éviter qu'une mise à jour majeure des modules puissent avoir lieu et pose des problème de compatibilité.
+npm install --save nom_du_module pour que chaque module installé et sa version soient automatiquement ajouter à la liste des dépendances dans le fichier package.json
+. Il reste une manipulation à faire dans le fichier package.json pour éviter les problèmes lors de mise à jour ultérieur des modules et dépendances avec la commande `npm update`. Il faut remplacer devant la version des différents module le caractère ^ par un ~ pour éviter qu'une mise à jour majeure des modules puissent avoir lieu et pose des problème de compatibilité. On peut également laisser le caractère ^ devant le numero de version ce qui selon la documentation officielle indique "Compatible with version" et serait l'équivalent comme ~ du module semver.(https://docs.npmjs.com/files/package.json)
 
 On obtient donc maintenant pour le fichier package.json le code suivant:
 

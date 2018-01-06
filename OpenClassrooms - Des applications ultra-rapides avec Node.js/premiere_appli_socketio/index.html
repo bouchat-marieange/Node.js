@@ -27,19 +27,20 @@
         <script>
             var socket = io.connect('http://localhost:8080');
             // Connexion au serveur qui se trouve sur ma machine donc adresse http://localhost:8080 - ce chemin devra être adapté pour un site en ligne par exemple :http://monsite.com
-            //Avec socket;on() on écoute les messages de type "message" provenant du serveur.
+            //Avec socket.on() on écoute les messages de type "message" provenant du serveur.
             // Lorsque des messages arrivent, on appelle la fonction de callback qui affiche une boite à dialogue contenant le message à destination de l'utilisateur
 
+            // Au chargement de la page, on va demander via une fenêtre prompt le pseudo du visiteur et envoyer ensuite ce pseudo au serveur via le un signal de type "petit_nouveau". Ce signal contient le pseudo du visiteur.
             var pseudo = prompt('Quel est votre pseudo ?'); // On affiche une fenêtre prompt demandant à l'utilisateur son pseudo
             socket.emit('petit_nouveau', pseudo);// la valeur de pseudo encodée dans la fenêtre prompt par l'utilisateur est ensuite envoyée au serveur avec son type "petit_nouveau" et sa valeur "pseudo_entré_par_utilisateur"
 
-
+            // Du coté du fichier index.html (le client), on va écouter l'arrivée de message de type "message", quand un message arrive on appelle la fonction callback qui ici affiche simplement une boite de dialogue indiquant "Le serveur a un message pour vous: + le contenu du message reçu")
             // Avec socket.io on envoie un message au serveur au moment où on clique sur le bouton "Embêter le serveur" - fonction callback (quand on clique sur le bouton, on envoie le message au serveur)
             socket.on('message', function(message) {
                 alert('Le serveur a un message pour vous : ' + message);
             })
 
-            // Avec JQuery, on indique que lorsque l'on clique sur le bouton, on envoie une message de type "message" au serveur, assorti d'un contenu. Il faut configurer le coté serveur maintenant pour récupérer ce message. (cfr app.js)
+            // Avec JQuery, on indique que lorsque l'on clique sur le bouton, on envoie une message de type "message" au serveur, assorti d'un contenu. Il faut configurer le coté serveur maintenant pour récupérer ce message.(ajouter l'écoute de message de type message dans la fonction callback de la connextion - cfr app.js)
             $('#poke').click(function () {
                 socket.emit('message', 'Salut serveur, ça va ?');
             })

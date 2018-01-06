@@ -24,7 +24,7 @@ on en crée une vide sous forme d'array avant la suite */
     res.render('todo.ejs', {todolist: req.session.todolist});
 })
 
-/* On ajoute un élément à la todolist */
+/* On ajoute un élément à la todolist, on utilise post et pas get pour transmettre les infos du formulaire*/
 .post('/todo/ajouter/', urlencodedParser, function(req, res) {
     if (req.body.newtodo != '') {
         req.session.todolist.push(req.body.newtodo);

@@ -1,0 +1,19 @@
+{
+  "name": "super_chat_solo",
+  "version": "1.0.0",
+  "description": "TP super Chat du cours OpenClassrooms intitulé \"Des applications ultra-rapides avec Node.js\" https://openclassrooms.com/courses/des-applications-ultra-rapides-avec-node-js/tp-le-super-chat - essai de réalisation seule sans utiliser la correction de l'exercice",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tp_super_chat"
+  ],
+  "author": "Marie-Ange Bouchat <bouchat.marieange@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "ent": "^2.2.0",
+    "express": "^4.16.2",
+    "socket.io": "^2.0.4"
+  }
+}
