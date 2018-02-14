@@ -21,12 +21,13 @@ app.get('/etage/:etagenum/chambre', function(req, res)
     if (isNaN(req.params.etagenum) == true)
     // On utilise la fonction javascript navitve isNAN() qui prend en paramètre la valeur à tester pour vérifier si la valeur en question est un nombre ou non. isNaN signifie "is not a Number", donc si l'étage renvoyé n'est pas un nombre (isNaN==true), alors on affiche la page 404 sinon (else) on affiche la page correxpondante à l'étage transmise en GET dans l'URL
     {
-    app.use(function(req, res, next){ // gestion particulière par les erreurs 404 - la page demandée n'existe aps
+    // app.use(function(req, res, next){ // gestion particulière par les erreurs 404 - la page demandée n'existe aps
         res.setHeader('Content-Type', 'text/plain');
         res.status(404).send('Erreur 404- Pas un numero etage !');
-    });
+    // });
     }
   else{
+      res.setHeader('Content-Type', 'text/plain');
       res.end('Vous êtes à la chambre de l\'étage n°' + req.params.etagenum);
     }
 });

@@ -30,8 +30,6 @@ var io = require('socket.io').listen(server);
 
 // Lorsqu'il détecte une connexion, le serveur envoie un message au client avec socket.emit() pour lui confirmer que la connexion à bien fonctionner. La fonction prend 2 paramètres (le type de message, ici "message" (nom choisi arbitrairement par le développeur) et le contenu du message 'Vous êtes bien connecté !')
 //Si on veut envoyer plusieurs données différents avec notre message, il faut les regrouper sous forme d'objet comme ceci: socket.emit('message', { content: 'Vous êtes bien connecté !', importance: '1' });
-
-
 io.sockets.on('connection', function (socket) {
         socket.emit('message', 'Vous êtes bien connecté !');// socket.emit() permet d'envoyer un message au client avec qui on est en train de discuter. Avec socket.broadcast.emit(), on envoie un broadcast, c'est à dire un message destiné à tous les autres client (excepté celui qui vient de sollicite le serveur). Par exemple on transmet le message reçu du client A à tout les autres clients actuellement connectés en même temps (comme c'est le cas dans une Chat)
         socket.broadcast.emit('message', 'Un autre client vient de se connecter !'); //On broadcast ce message à tous les autres clients connectés lors de la connexion d'un client. De cette manière toutes les autres clients connectés recevront une message leur indiquant "Un autre client vient de se connecter !"

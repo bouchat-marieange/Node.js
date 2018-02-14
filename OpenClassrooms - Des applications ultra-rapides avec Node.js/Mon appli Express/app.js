@@ -128,7 +128,7 @@ app.get('/sous-sol', function(req, res) {
 // Pour le cas ou les étages sont transmis en get (ex: route URL http:/localhost:8080/etage/1/chambre), j'utilise un systeme pour récupérer les routes dynamiques (le numéro d'étage varie et est récupérer) et en plus je teste si la variable correspondant à l'étage est bien un nombre, si ce n'est pas le cas je redirige vers page 404, si c'est bien un nombre j'affiche la page correspondante avec l'étage transmis en Get
 app.get('/etage/:etagenum/chambre', function(req, res)
 {
-    // res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Content-Type', 'text/plain');
     console.log(req.params.etagenum); // Affiche la valeur du numéro d'étage récupérée dans l'url dans la console
     if (isNaN(req.params.etagenum)!=true) // On utilise la fonction javascript nativeve isNAN() qui prend en paramètre la valeur à tester pour vérifier si la valeur en question est un nombre ou non. isNaN signifie "is not a Number", donc si l'étage renvoyé est un nombre (isNaN!=true) (n'est pas un nombre est faux donc est un nombre est vrai), alors on affiche la page avec la phrase indiquant le numéro d'étage récupérée dans l'url
     {
@@ -137,11 +137,10 @@ app.get('/etage/:etagenum/chambre', function(req, res)
 
     }
     else if (isNaN(req.params.etagenum)==true) {
-    console.log('erreur - pas un nombre!');// Affiche erreur - pas un nombre dans la console si le numéro d'étage récupéré dans l'url n'est pas un nombre (car isNaN n'est pas un nombre est vrai)
-    app.use(function(req, res, next){
+    console.log('erreur - pas un nombre!');// Affiche erreur - pas un nombre dans la console si le numéro d'étage récupéré dans l'url n'est pas un nombre (car isNaN n'est pas un nombre est vrai
         res.setHeader('Content-Type', 'text/plain');
         res.send(404, 'Page introuvable !');
-      });
+
     }
 });
 
