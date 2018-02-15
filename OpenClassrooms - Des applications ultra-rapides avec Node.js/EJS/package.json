@@ -1,0 +1,15 @@
+{
+  "name": "Essai_template_EJS",
+  "version": "1.0.0",
+  "description": "essai template avec EJS",
+  "main": "essai_template_EJS.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "mabo",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^2.5.7",
+    "express": "^4.16.2"
+  }
+}
