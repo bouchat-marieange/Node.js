@@ -22,6 +22,8 @@ var jeu = new EventEmitter();// On crée un objet basé sur EventEmitter
 // Va afficher Mario 35 dans la console
 
 
+
+
 // Une explication claire et détaillée
 // Source: https://www.w3schools.com/nodejs/nodejs_events.asp
 
@@ -30,16 +32,24 @@ var jeu = new EventEmitter();// On crée un objet basé sur EventEmitter
 // Pour déclencher un événement, utilisez la méthode emit ().
 //
 // Example
+
+// On inclus le module 'events' de EventEmitter et on créer un objet basé sur EventEmitter
 // var events = require('events');
 // var eventEmitter = new events.EventEmitter();
 //
-// //Create an event handler:
+
+// On indique ce qui va se passer quand l'évènement va se produire - Quand l'évenement cri se produit afficher dans la console "J'entends un cri"
+// Create an event handler (gestionnaire d'évènement):
 // var myEventHandler = function () {
 //   console.log('I hear a scream!');
 // }
 //
+
+// // On indique quel évènement doit être écouter (surveiller) - surveiller quand l'évènement cri se produit
 // //Assign the event handler to an event:
 // eventEmitter.on('scream', myEventHandler);
 //
+
+// On emet l'évenement (ici un cri)
 // //Fire the 'scream' event:
 // eventEmitter.emit('scream');

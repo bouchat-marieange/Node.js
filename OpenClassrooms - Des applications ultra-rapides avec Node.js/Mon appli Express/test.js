@@ -8,7 +8,7 @@ app.get('/', function(req, res) {
     res.end('Vous êtes à l\'accueil');
 });
 
-//On peut ensuite ajouter autant de routes (adresse URL) qu'on le souhaite par ecemple (http://localhost:8080/sous-sol)
+//On peut ensuite ajouter autant de routes (adresse URL) qu'on le souhaite par exemple (http://localhost:8080/sous-sol)
 app.get('/sous-sol', function(req, res) {
     res.setHeader('Content-Type', 'text/plain');
     res.end('Vous êtes dans la cave à vins, ces bouteilles sont à moi !');
