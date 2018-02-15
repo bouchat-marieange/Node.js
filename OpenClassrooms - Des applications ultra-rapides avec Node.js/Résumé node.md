@@ -920,3 +920,124 @@ Et voilà votre module peut à présent être utilisé par toute la communauté 
 
 
 ## Le framework Express.js
+
+Pour permettre de coder plus rapidement et plus simplement dans l'environnement bas niveau de Node.js, on peut utiliser des bibliothèques et des frameworks (sortes de super-bibliothèques).
+
+Un module est particulièrement connu sur NPM c'est Express.js. C'est un micro
+-framework pour Node.js qui fournit des outils de base pour aller plus vite dans la création d'applicaton Node.js.
+
+Attention Express.js n'est pas aussi complet et puissant que des framework comme Django ou Symfony), qui permettent par exemple de générer des interfaces d'administration.
+Express permet d'être un peu moins bas niveau en offrant par exemple la possibilité de gerer plus facilement les routes (URL) de votre application et d'utiliser des templates. Ce qui est déja pas mal.
+
+**Installation de Express.js**
+
+Créer un nouveau dossier pour une nouvelle application, placer-vous à l'intérieur et taper la commande:
+
+```
+npm install express
+```
+
+### Les routes
+
+Pour éviter le long et fastidieux code spaghetti if, else demandé par Node.js pour vérifier les URL du type:
+
+```javascript
+if (page == '/') {
+    // ...
+}
+else if (page == '/sous-sol') {
+    // ...
+}
+else if (page == '/etage/1/chambre') {
+    // ...
+}
+```
+
+Lorsque l'on crée un application web, on manipule des routes, ce sont les différentes URL auxquelles notre application doit répondre. Bien gérer les routes est important et le module Express nous aide dans cette tâche.
+
+#### Les routes simples
+
+Voici une application très basique utilisant Express. N'oubliez pas d'installer Expresse avec la commande npm install express pour que ce code s'exécute correctement
+
+```javascript
+var express = require('express');
+var app = express();
+
+app.get('/', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes à l\'accueil');
+});
+
+app.listen(8080);
+```
+
+
+
+Voici un code plus complet de route gérer avec Express (incluant la gestion d'erreur 404 pour les pages non trouvées)
+
+```javaScript
+var express = require('express');//On inclus Express
+var app = express();//on crée un objet app en appellant la fonction express()
+
+
+// On indique ensuite les différentes routes
+// Lorsque l'on quelqu'un demande une route, une fonction callback est appelée
+
+// La route / correspond à la racine et donc à l'accueil du suite ou en local à l'adresse localhost:8080
+app.get('/', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes à l\'accueil');
+});
+
+// La route /sous-sol correspond à une sous page ou en local à l'adresse localhost:8080/sous-sol/
+app.get('/sous-sol', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes dans la cave à vins, ces bouteilles sont à moi !');
+});
+
+// La route /etage/1/chambre correspond à une sous-sous-sous-page ou en local à l'adresse localhost:8080/etage/1/chambre/
+app.get('/etage/1/chambre', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Hé ho, c\'est privé ici !');
+});
+
+// Code permettant de gérer les erreurs 404 à inclure à la fin du code obligatoirement juste avant app.listen
+app.use(function(req, res, next){
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(404, 'Page introuvable !');
+});
+
+app.listen(8080);
+
+```
+
+Express permet de chainer les appels à get() et use()
+Cela revient à faire app.get().get().get() ... Ca marche parce que ces fonctions se renvoient l'une à l'autre l'objet app. ce qui nous permet de raccourcir notre code. Ne soyez pas étonnés si vous voyez des codes utilisant Express écrits sous cette forme.
+
+```javascript
+app.get('/', function(req, res) {
+
+})
+.get('/sous-sol', function(req, res) {
+
+})
+.get('/etage/1/chambre', function(req, res) {
+
+})
+.use(function(req, res, next){
+
+});
+```
+
+#### Les routes dynamiques
+
+Express vous permet aussi de gérer des routes dynamiques, c'est à dire des routes dont certaines portions peuvent varier. voud devez écrire <code>:nomvariable</code> dans l'url de la route, ce qui aura pour effet de créer un paramètre accessible depuis <code>req.params.nomvariable</code>
+
+Voici un Exemple:
+
+```javascript
+app.get('/etage/:etagenum/chambre', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Vous êtes à la chambre de l\'étage n°' + req.params.etagenum);
+});
+```

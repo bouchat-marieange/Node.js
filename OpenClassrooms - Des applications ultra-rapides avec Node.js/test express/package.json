@@ -1,0 +1,20 @@
+{
+  "name": "test_express",
+  "version": "0.1.0",
+  "dependencies": {
+    "ejs": "^2.5.7",
+    "express": "^4.16.2",
+    "markdown": "^0.4.0",
+    "morgan": "^1.9.0",
+    "serve-favicon": "^2.4.5",
+    "utf8": "^3.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "description": "test du module Express pour Node.js",
+  "main": "Premier test Node.js",
+  "devDependencies": {},
+  "author": "mabo",
+  "license": "ISC"
+}
