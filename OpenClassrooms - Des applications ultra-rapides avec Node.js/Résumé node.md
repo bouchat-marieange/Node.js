@@ -1176,12 +1176,19 @@ On peut envoyer plusieurs paramètres à nos templates, y compris des tableaux!
 Nous allons pour tester cette fonctionnalité créer une application qui compte jusqu'à un nombre envoyé en paramètre et qui affiche un nom au hasard au sein d'un tableau.
 
 1. Créer un dossier pour un nouveau projet
+
 2. Créer un fichier compteur_aleatoire.js
+
 3. Créer un dossier views
+
 4. Créer un fichier package.json avec la commande npm init
+
 5. installer express avec la commande npm install express --save
+
 6. installer ejs avec la commande npm ejs --save
+
 7. Créer un fichier template.ejs dans le dossier views
+
 8. Dans le fichier compteur_aleatoire.js taper le code suivant:
 
 ```javascript
@@ -1201,6 +1208,7 @@ app.use(function(req, res, next){
 
 app.listen(8080);
 ```
+
 9. On transmet le nombre envoyé en paramètre et une liste de noms sous forme d'un tableau que l'on récupère ensuite dans le template ejs situé dans le dossier views. Dans le fichier template.ejs (situé dans le dossier views) taper le code suivant:
 
 ```ejs
@@ -1219,8 +1227,11 @@ app.listen(8080);
 </p>
 ```
 On peut donc fiare des boulces avec les templates EJS. On utilise pour cela la même syntaxe que JavaScript (boucle for). Le math random permet de choisir un nom au hasard dans le tableau.
+
 10. Lancer l'application avec la commande node compteur_aleatoire.js ou nodemon compteur_aleatoire.js
+
 11. Aller voir le résultat dans la page du navigateur à l'adresse localhost:8080/compter/66
+
 12. La page devrait afficher tout les chiffre de 1 à 66 et afficher un des prénom au hasard provenant du tableau qu'on lui a envoyé (soit Robert, soit Jacques, soit David)
 
 
