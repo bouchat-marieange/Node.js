@@ -862,3 +862,61 @@ Pour chaque application il y a :
 * Un numéro de patch. Ce numéro est changé à chaque petite correction de bug ou de faille. Les fonctionnalités de l'application restent les mêmes entre les patchs, il s'agit surtout d'optimisations et de corrections indispensables.
 
 ![systeme version](https://user.oc-static.com/files/421001_422000/421284.png)
+
+Ici j'ai donc choisi de commencer à numéroter mon application à la version 0.1.0 (on aurait aussi pu commencer à 1.0.0 mais ç'aurait été prétentieux ;) ).
+
+* Si je corrige un bug, l'application passera à la version 0.1.1 et il me faudra mettre à jour ce numéro dans le fichier packages.json.
+
+* Si j'améliore significativement mon application, elle passera à la version 0.2.0, puis 0.3.0 et ainsi de suite.
+
+* Le jour où je considère qu'elle a atteint un jalon important, et qu'elle est mature, je pourrai la passer en version 1.0.0.
+
+##### La gestion des versions et des dépendances
+
+C'est à vous d'indiquer avec quelles versions de ses dépendances votre application focntionne. Si votre application dépend du module markdown v0.3.5 très précisément vous écrirer:
+```
+"dependencies": {
+    "markdown": "0.3.5" // Version 0.3.5 uniquement
+}
+```
+Si vous faites un npm update pour mettre à jour lses modules externes, markdown ne sera jamais mis à jour (même si l'application passe en version 0.3.6). Vous pouvez mettre un tilde devant le numéro de version pour autoriser les mises à jour jusqu'à la prochaine version mineure.
+
+```
+"dependencies": {
+    "markdown": "~0.3.5" // OK pour les versions 0.3.5, 0.3.6, 0.3.7, etc. jusqu'à la version 0.4.0 non incluse
+}
+```
+Si vous voulez, vous pouvez ne pas indiquer de numéro de patch. Cans ce cas, les modules seront mis à jour même si l'application change de version mineure:
+
+```
+"dependencies": {
+    "markdown": "~0.3.5" // OK pour les versions 0.3.5, 0.3.6, 0.3.7, etc. jusqu'à la version 0.4.0 non incluse
+}
+```
+**Attention:** Entre deux versions mineures, un module peut changer suffisament que pour devenir incompatible avec votre application. Je recommande d'accepter uniquement les mises à jour de patch, c'est le plus sûr.
+
+
+#### Publier un modules
+
+Avec Node.js vous pouvez créer une application pour vos besoins, mais vous pouvez aussi créer des modules qui offrent des fonctionnalités. Si vous pensez que votre module pourait servir à d'autres, vous pouvez les partager facilement en les publiant sur NPM pour que d'autres personnes puissent les installer à leur tour.
+
+Rappel: un module n'est rien d'autre qu'une application Node.js qui contient des instructions exports pour partager des fonctionnalités.
+
+Pour publier un module sur npm
+
+1. Créer vous un compte utilisateur sur npm avec la commande:
+
+```
+npm adduser
+```
+
+2. Une fois le compte créer placer vous dans le repertoire de votre projet à publier et vérifier que vous avez bien : un fichier package.json qui décrit votre module (minimum: nom , version et dépendances) et un fichier README.md (écrit en markdown) qui présente votre module de façon un peu détaillée, avec un mini-tutoriel pour expliquer comment l'utiliser.
+
+3. Taper dans le terminal la commande
+```
+npm publish
+```
+Et voilà votre module peut à présent être utilisé par toute la communauté Node.js. N'hsésitez pas à parler de votre module autour de vous et de le présenter sur les mailing-lists de Node.js.
+
+
+## Le framework Express.js
