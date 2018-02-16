@@ -1236,3 +1236,98 @@ On peut donc fiare des boulces avec les templates EJS. On utilise pour cela la m
 
 
 ### Aller plus loin : les middlewares
+
+Express est un framework basé sur le concept de middleware. Ce sont des petits morceaux d'application qui rendent chacun un service spécifique. Cela permet de ne charger que les middleware dont on a besoin.
+
+Express est fourni de base avec une quinzaine de middlewares. D'autres développeurs peuvent bien entendu en proposer d'autres via NPM. Les middlewares livrés avec Express fournissent chacun des micro-fonctionnalités.
+
+Par exemple:
+
+* compression: permet la compression gzip de la page pour un envoi plus rapide au navigateurs
+
+* cookie-parser: permet de manipuler les cookies
+
+* cookie-session: permet de géer des informations de session (durant la visite d'un visiteur)
+
+* serve-static: permet de renvoyer des fichiers statiques contenus dans un dossier (images, fichiers à télécharger, ...)
+
+* serve-favicon: permet e renvoyer la favicon du suite
+
+* csrf: fournit une protection contre les failles CSRF (Cross-Site Request Forgery, que l'on peut traduire en français par Falsification de requête inter-sites). Pour plus d'explication sur les failles CSRF : https://www.leblogduhacker.fr/faille-csrf-explications-contre-mesures/
+
+* etc ...
+
+Certains sont tout petit comme serve-favicon et d'autres plus conséquent. Ces middlewares sont interconnectés et peuvent communiquer entre eux. Express ne fait qu'ajouter les routes et les vues par-dessus l'ensemble.
+
+Tous ces middlewares communiquent entre eux en se renvoyant jusqu'à 4 paramètres:
+
+* err : les erreurs
+* req: la requête du visiteurs
+* res : la réponse à renvoyer (la page HTML et les informations d'en-tête)
+* next: un callback vers la prochaine fonction à appeler
+
+Voici un shéma expliquant comment communiquent les middlewares:
+
+![communication middlewares](https://user.oc-static.com/files/421001_422000/421333.png)
+
+Les middleware d'Express étaient séparés auparavant dans un module appelé Connect. Ils sont désormais intégrés à Express.
+
+Pour savoir comment utiliser les middlewares: http://expressjs.com/en/guide/using-middleware.html
+La documentation d'Express: http://expressjs.com/en/api.html
+
+La documentation en francais pour les middleware: http://expressjs.com/fr/guide/using-middleware.html
+La documentaiont en français d'Express: http://expressjs.com/fr/
+
+#### Utiliser les middlewares au sein d'Expresse
+
+Concrètement, il suffit d'appeler la méthode <code>app.use()</code> pour utiliser un middleware. Vous pouvez les chainer (les appeler les uns à la suite des autres).
+
+Remarque: Pensez à installer les middlewares donct vous avez besoin avec npm install avant d'exécuter ce code (middleware à installer: express, morgan, serve-favicon, serve-static), il est également nécessaire de créer un dossier nommé 'public' dans lequel on va mettre un fichier favicon que l'on appelera favicon.ico et un fichier static quelconque comme un fichier image car le code fait référence à ces éléments placé à cet endroit.
+
+Exemple:
+
+```javaScript
+var express = require('express');
+var morgan = require('morgan'); // Charge le middleware de logging
+var favicon = require('serve-favicon'); // Charge le middleware de favicon
+
+var app = express();
+
+app.use(morgan('combined')) // Active le middleware de logging
+.use(express.static(__dirname + '/public')) // Indique que le dossier /public contient des fichiers statiques (middleware chargé de base)
+.use(favicon(__dirname + '/public/favicon.ico')) // Active la favicon indiquée
+.use(function(req, res){ // Répond enfin
+    res.send('Hello');
+});
+
+app.listen(8080);
+```
+
+Attention: L'ordre d'appel des middlewares est extrêmement important. Par exemple, on commence par activer le logger. Si on le faisait en dernier on ne loggerait rien!
+Quand vous faites appel aux middlewares, réfléchissez à l'ordre car il peut impacter fortement le fonctionnement de votre application.
+
+Dans l'exemple ci-dessus, on fait appel dans l'ordre au middlewares morgan, static (alias de serve-static) et favicon. Chaque middleware va se renvoyer des données (la requête, la réponse, la fonction suivante à appeler, ...). Chacun a un rôle très précis. Pour savoir comment les utiliser, on se réfère à la documentation: http://expressjs.com/en/resources/middleware.html
+La documentation est également disponible en français ici: http://expressjs.com/fr/resources/middleware.html
+
+En résumé, Express propose un ensemble de middlewaress qui communiquent entre eux. Appelez ces middlewares pour utiliser leurs fonctionnalités avec la commmande app.use . Veillez bien à l'ordre d'appel des middleware (par exemple on active un logger au début des opérations pas à la fin). Il faut respecter un ordre logique.
+
+
+## TP : La todo lists
+
+Nous allons réaliser une première application pour mettre en pratique les connaissances acquises dans les chapitres précédents.
+
+Nous allons réaliser un todo list (une liste de tâches). Le visiteur pourra ajouter et supprimer des tâches.
+
+Voici à quoi ressemble l'appli que nous allons créer:
+
+![visuel todolist](https://user.oc-static.com/files/421001_422000/421348.png)
+
+Dans cette application:
+* On peut ajouter des éléments à la todolist via le formulaire.
+* On peut supprimer des éléments en cliquant sur les croix dans la liste
+* La liste est stockée dans la session du visiteur. Si quelqu'un d'autre se connecte, il aura sa propre liste.
+
+N'oubliez pas de consulter la doc d'Express ; http://expressjs.com/fr/4x/api.html
+
+
+### Besoin d'aide

@@ -1,0 +1,10 @@
+{
+  "name": "chaine_middlewares",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "^4.16.2",
+    "morgan": "^1.9.0",
+    "serve-favicon": "^2.4.5",
+    "serve-static": "^1.13.2"
+  }
+}
