@@ -229,7 +229,6 @@ Attention res.end() doit toujours être appelé en dernier pour terminer la rép
 **Code complet avec HTML valide**
 
 ````javascript
-
 var http = require('http');
 
 var server = http.createServer(function(req, res) {
@@ -247,7 +246,6 @@ var server = http.createServer(function(req, res) {
     res.end();
 });
 server.listen(8080);
-
 ````
 ## Comment éviter de devoir à chaque fois recharger la page dans la console avec node nomFichier.js
 
@@ -620,7 +618,7 @@ Il existe des milliers de modules proposant des fonctionnalités variées (gesti
 
 ### Créer des modules
 
-Nous avons déja utilisé des modules natifs de Node.js tel que http et url, grâce à des appel à la bibliothèque de Node se trouvant sur notre disque dur avec ce type de
+Nous avons déja utilisé des modules natifs de Node.js tel que http et url, grâce à des appel à la bibliothèque de Node se trouvant sur notre disque dur avec ce type de code.
 
 ```javascript
 var http = require('http'); // Fait appel à http.js
@@ -686,7 +684,7 @@ On peut soit écrire les fonctions puis les exporter ou inclure directement l'ex
 ```javaScript
 exports.direBonjour = function() { ... };
 ```
-Toutes les fonctions que l'on exporte aps dans notre fichier de module resteront privées. Ce qui signifie qu'elle ne pourront pas être appelée de l'extérieur. Par contre elle pourront tout à fiat être utilisées par d'autre fonctions de votre module.
+Toutes les fonctions que l'on exporte pas dans notre fichier de module resteront privées. Ce qui signifie qu'elle ne pourront pas être appelée de l'extérieur. Par contre elle pourront tout à fait être utilisées par d'autre fonctions de votre module.
 
 Maintenant dans le fichier principal de notre application (ex: mon_appli.js) on va importer le module puis faire appel à ces fonctions issues du modules:
 
@@ -697,7 +695,7 @@ monmodule.direBonjour();
 monmodule.direByeBye();
 ```
 
-require() renvoie à un objet qui contient les fonctions que vous avez exportées dans votre module. Nous stockons cet objet dans uen variable du même nom ou un nom ayant un sens logique, puis on appelle les fonctions dans l'appli. Ensuite on lance l'appli en allant dans le terminal positionner à l'endroit où se trouve le fichier de notre appli et on tape soit node nomFichier.js soit nodemon nomFichier.js (si nodemon est installé)
+require() renvoie à un objet qui contient les fonctions que vous avez exportées dans votre module. Nous stockons cet objet dans une variable du même nom ou un nom ayant un sens logique, puis on appelle les fonctions dans l'appli. Ensuite on lance l'appli en allant dans le terminal positionner à l'endroit où se trouve le fichier de notre appli et on tape soit node nomFichier.js soit nodemon nomFichier.js (si nodemon est installé)
 
 Tous les modules de Nodes sont basés sur ce principe très simple. Cela permet de découper un projet en plusieurs petits fichiers pour répartir les rôles.
 
@@ -761,7 +759,7 @@ renverra dans la console
 ```
 <p>Hello <em>World</em>!</p>
 ```
-**Attention:** Les modules installés globalement ne peuvent pas être inclus dans vos projets Node.js avec require() ! Il s servent à fournir des commandes supplémentaires dans la console. Si vous voulez les utiliser en JavaScript vous devez aussi les installer en mode local sans le -g à la fin de la ligne de commande.
+**Attention:** Les modules installés globalement ne peuvent pas être inclus dans vos projets Node.js avec require() ! Ils servent à fournir des commandes supplémentaires dans la console. Si vous voulez les utiliser en JavaScript vous devez aussi les installer en mode local sans le -g à la fin de la ligne de commande.
 
 #### Mise à jour des node_modules
 
@@ -793,7 +791,7 @@ Attention, il faut créer ce fichier au tout début de votre projet et avant d'a
 ```
 npm install nomdumodule --save
 ```
-CLa méthode ci-dessus installe la dernière version du module. Si vous désirez installer une version précise du module utiliser la commande:
+La méthode ci-dessus installe la dernière version du module. Si vous désirez installer une version précise du module utiliser la commande:
 ```
 npm install nomdumodule@version --save
 ```
@@ -879,7 +877,8 @@ C'est à vous d'indiquer avec quelles versions de ses dépendances votre applica
     "markdown": "0.3.5" // Version 0.3.5 uniquement
 }
 ```
-Si vous faites un npm update pour mettre à jour lses modules externes, markdown ne sera jamais mis à jour (même si l'application passe en version 0.3.6). Vous pouvez mettre un tilde devant le numéro de version pour autoriser les mises à jour jusqu'à la prochaine version mineure.
+Si vous faites un npm update pour mettre à jour lses modules externes, markdown ne sera jamais mis à jour (même si l'application passe en version 0.3.6). Vous pouvez mettre un tilde (~)devant le numéro de version pour autoriser les mises à jour jusqu'à la prochaine version mineure non incluse.(exemple: ~1.2.3 permet de mettre à jour jusque 1.2.9 mais pas 1.3.0).Le petit tilde ~ permet d'autoriser les futurs patchs de ces modules mais pas les nouvelles versions mineures ou majeures, ce qui nous garantit que leur API ne changera pas, et donc que notre code continuera à fonctionner même avec ces mises à jour. Le caractère caret (^) placé devant la version du module permettra de mettre le module à jour jusqu'à la prochaine version incluse (exemple: ~1.2.3 permet de mettre à jour jusque 1.3.0)
+http://stackabuse.com/caret-vs-tilde-in-package-json/
 
 ```
 "dependencies": {
@@ -1135,7 +1134,7 @@ Depuis votre fichier JavaScript, vous appelez le template de votre choix en lui 
 
 ![fonctionnement template avec Node.js](https://user.oc-static.com/files/421001_422000/421341.png)
 
-#### Les bases d'nodejs
+#### Les bases d'EJS
 
 Comme il existe de nombreux langage de template je vous propose d'en choisir un EJS (Embedded JavaScript). Documentation: http://www.embeddedjs.com/
 
@@ -1278,11 +1277,11 @@ La documentation d'Express: http://expressjs.com/en/api.html
 La documentation en francais pour les middleware: http://expressjs.com/fr/guide/using-middleware.html
 La documentaiont en français d'Express: http://expressjs.com/fr/
 
-#### Utiliser les middlewares au sein d'Expresse
+#### Utiliser les middlewares au sein d'Express
 
 Concrètement, il suffit d'appeler la méthode <code>app.use()</code> pour utiliser un middleware. Vous pouvez les chainer (les appeler les uns à la suite des autres).
 
-Remarque: Pensez à installer les middlewares donct vous avez besoin avec npm install avant d'exécuter ce code (middleware à installer: express, morgan, serve-favicon, serve-static), il est également nécessaire de créer un dossier nommé 'public' dans lequel on va mettre un fichier favicon que l'on appelera favicon.ico et un fichier static quelconque comme un fichier image car le code fait référence à ces éléments placé à cet endroit.
+Remarque: Pensez à installer les middlewares dont vous avez besoin avec npm install avant d'exécuter ce code (middleware à installer: express, morgan, serve-favicon, serve-static), il est également nécessaire de créer un dossier nommé 'public' dans lequel on va mettre un fichier favicon que l'on appelera favicon.ico et un fichier static quelconque comme un fichier image car le code fait référence à ces éléments placé à cet endroit.
 
 Exemple:
 
@@ -1331,3 +1330,184 @@ N'oubliez pas de consulter la doc d'Express ; http://expressjs.com/fr/4x/api.htm
 
 
 ### Besoin d'aide
+
+1. Créer nouveau dossier
+2. Se placer à l'intérieur avec le Terminal
+3. Exécuter npm init pour créer un fichier package.JSON
+4. Installer Express avec npm install express --save
+5. Installer ejs avec npm install ejs --save
+6. Créer un fichier pour notre application index.js
+7. Créer les différentes routes (url). Il faut une url pour:
+* lister les tâches (/todo)
+* ajouter une tâche (/todo/ajouter)
+* Supprimer une tâche (todo/supprimer/:id). On indique une id savoir la tâche à supprimer
+```javascript
+.get('/todo', function(req, res) {
+
+});
+```
+Pour ajouter une tâche via un formulaire on passe par la methode post et pas par la methode get. Donc pour la route todo/ajouter, on utilisera ce code
+```
+.post('/todo/ajouter/', function(req, res) {
+
+})
+```
+8. Chaîner les appels aux middlewares
+
+
+## TP: todolist
+
+### Stocker une session dans un cookie (par exemple tableau reprenant liste de l'utilisateur)
+
+Installer le middleware cookie-session (npm install cookie-session --save)
+Indiquer juste après le require express la ligne suivante:
+```
+var session = require('cookie-session'); // Charge le middleware de sessions
+```
+
+Utiliser la session
+
+```javaScript
+app.use(session({secret: 'todotopsecret'}))
+```
+secret envoyé au module de session est obligatoire, il permet de sécurisér les cookies de session. Envoyer la valeur de votre choix. Dautres options comme la durée de vie du cookie sont également possible. Par défault la session durera tant que le navigateur restera ouvert. (https://www.npmjs.com/package/cookie-session)
+
+
+Pour éviter tout problème lié au fait que javascript n'aime pas lire des tableau vide (session vide au départ lorsque l'utilisateur n'a pas encore ajouté de tâches), créer un middlewar qui teste la présence d'une session et si ce n'est pas le cas qui crée automatiquement un tableau vide [] dans la session.
+
+```javascript
+.use(function(req, res, next){
+    if (typeof(req.session.todolist) == 'undefined') {
+        req.session.todolist = [];
+    }
+    next();
+})
+```
+
+### Récupérer des paramètres depuis les formulaires
+
+Installer le module body-parser (npm body-parser --save)
+Lire la documentation: https://www.npmjs.com/package/body-parser
+Après un peu de configuration , cela permet d'avoir accès à req.body.nomDuChamp.
+
+Dans le fichier principal indiquer en haut après le require d'express:
+```javascript
+var bodyParser = require('body-parser'); // Charge le middleware de gestion des paramètres
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
+```
+Plus loin dans le code, utliser la récupération des données du formulaires avec le code suivant:
+
+
+#### Ajouter des paramètres récupéré en post dans un tableau stocké dans une session
+
+```javascript
+/* On ajoute un élément à la todolist */
+.post('/todo/ajouter/', urlencodedParser, function(req, res) {
+    if (req.body.newtodo != '') {
+        req.session.todolist.push(req.body.newtodo);
+    }
+    res.redirect('/todo');
+})
+```
+Avec .post à l'inverse d'avec .get on récupère les données envoyée en post par un formulaire et non les données envoyée en get directement dans l'url de la page.
+
+req.body.newtodo, contient ici le paramètre qui a été envoyé par le formulaire et qui est ajouter au tableau todolist contenu dans la session grâce à la commande push utilisée couramment en javascript pour ajouter un élément à un tableau.
+
+#### Supprimer des éléments d'un tableau stocké en session grâce à son id récupéré en get dans l'url de la page
+
+```javascript
+/* Supprime un élément de la todolist */
+.get('/todo/supprimer/:id', function(req, res) {
+    if (req.params.id != '') {
+        req.session.todolist.splice(req.params.id, 1);
+    }
+    res.redirect('/todo');
+})
+```
+La commande splice utilisée fréquemment en javascript permet de supprimer un élément ou plusieurs éléments d'un tableau. Splice prend en paramètre le début de la suppression (l'incide à paritir duquel il faut supprimer les éléments. Attention commence à 0 et pas à 1 dans les tableaux), le nombre d'élément à supprimé).https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Objets_globaux/Array/splice
+
+### Rediriger vers une page choisie si la page demandée n'est pas trouvée
+
+```javaScript
+var express = require('express');
+var session = require('cookie-session'); // Charge le middleware de sessions
+var bodyParser = require('body-parser'); // Charge le middleware de gestion des paramètres
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
+
+var app = express();
+
+
+/* On utilise les sessions */
+app.use(session({secret: 'todotopsecret'}))
+
+
+/* S'il n'y a pas de todolist dans la session,
+on en crée une vide sous forme d'array avant la suite */
+.use(function(req, res, next){
+    if (typeof(req.session.todolist) == 'undefined') {
+        req.session.todolist = [];
+    }
+    next();
+})
+
+/* On affiche la todolist et le formulaire */
+.get('/todo', function(req, res) {
+    res.render('todo.ejs', {todolist: req.session.todolist});
+})
+
+/* On ajoute un élément à la todolist */
+.post('/todo/ajouter/', urlencodedParser, function(req, res) {
+    if (req.body.newtodo != '') {
+        req.session.todolist.push(req.body.newtodo);
+    }
+    res.redirect('/todo');
+})
+
+/* Supprime un élément de la todolist */
+.get('/todo/supprimer/:id', function(req, res) {
+    if (req.params.id != '') {
+        req.session.todolist.splice(req.params.id, 1);
+    }
+    res.redirect('/todo');
+})
+
+/* On redirige vers la todolist si la page demandée n'est pas trouvée */
+.use(function(req, res, next){
+    res.redirect('/todo');
+})
+```
+
+### Faire une boucle foreach dans un fichier.ejs (template EJS placé dans dossier views qui gère l'affichage de la page avec le module de template EJS)
+
+Tout ce qui n'est pas du html et qui est soit du javascript soit des données récupérées en javascript seront écrites entre les balise <% et %>
+
+```EJS
+<ul>
+<% todolist.forEach(function(todo, index) { %>
+    <li><a href="/todo/supprimer/<%= index %>">✘</a> <%= todo %></li>
+<% }); %>
+</ul>
+```
+
+### Créer un formulaire dans un fichier.ejs (template EJS placé dans dossier views qui gère l'affichage de la page avec le module de template EJS)
+
+```EJS
+<form action="/todo/ajouter/" method="post">
+    <p>
+        <label for="newtodo">Que dois-je faire ?</label>
+        <input type="text" name="newtodo" id="newtodo" autofocus />
+        <input type="submit" />
+    </p>
+</form>
+```
+
+Le nom du champ ici "newtodo" entrée dans le formulaire sera utilisé pour récupéré l'information dans la fonction d'ajout de la donnée dans le tableau stocké dans la session.(dans le fichier principal - index.js)
+
+```javascript
+.post('/todo/ajouter/', urlencodedParser, function(req, res) {
+    if (req.body.newtodo != '') {
+        req.session.todolist.push(req.body.newtodo);
+    }
+    res.redirect('/todo');
+})
+```
