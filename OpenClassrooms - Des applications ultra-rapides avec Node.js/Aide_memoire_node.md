@@ -66,6 +66,24 @@ var server = http.createServer(function(req, res) {
 server.listen(8080);
 ````
 
+On peut également créer un serveur en Node.js avec les modules natifs http et fs
+
+```javascript
+var http = require('http');// module extension inclus dans la librairie nodejs pour créer un serveur (doc: https://www.w3schools.com/nodejs/nodejs_http.asp)
+var fs = require('fs'); // module extension inclus dans la librairie nodejs (fs = file system). Permet de lire de façon asynchrone tout le contenu d'un fichier
+
+// Chargement du fichier index.html affiché au client
+// usage de fs.readfile (documentation: https://nodejs.org/api/fs.html#fs_fs_readfile_path_options_callback)
+var server = http.createServer(function(req, res) {
+    fs.readFile('./index.html', 'utf-8', function(error, content) {
+        res.writeHead(200, {"Content-Type": "text/html"});
+        res.end(content);
+    });
+});
+
+server.listen(8080);
+```
+
 ### Récupérer la page demandée par le visiteur (indiqué dans l'url) + gestion erreur 404 (gestion des routes avec node.js)
 
 ````javascript
@@ -903,3 +921,345 @@ Le nom du champ ici "newtodo" entrée dans le formulaire sera utilisé pour réc
     res.redirect('/todo');
 })
 ```
+
+## Socket.io : passez au temps réel
+
+Socket.io est une bibliothèque très souvent utilisée par les développeur Node.js. Cette bibliothèque permet de faire de la communication synchrone et donc de communiquer en temps réel. Non seulement le client peut envoyé des données au serveur mais le serveur peut égalemnt envoyé des données au client sans que celui-ci ne doivent ni le demandé à chaque fois, ni rafraichir la page. Socket.io déterminer pour chaque client la méthode de communication temps réel la plus adaptée. Le plus souvent ce sera WebSocket mais si cette méthode n'est pas utilisable sur l'ordi client, socket.io utilisera une autre méthode. socket.io est compatible avec de nombreux navigateurs même très anciens.
+
+### Emettre et recevoir des messages avec socket.io
+
+On a besoin de 2 fichiers : app.js (serveur) et index.html (client)
+
+#### Connection au serveurs
+
+**Dans app.js**
+
+```javaScript
+var http = require('http');
+var fs = require('fs');
+
+// Chargement du fichier index.html affiché au client
+var server = http.createServer(function(req, res) {
+    fs.readFile('./index.html', 'utf-8', function(error, content) {
+        res.writeHead(200, {"Content-Type": "text/html"});
+        res.end(content);
+    });
+});
+
+// Chargement de socket.io
+var io = require('socket.io').listen(server);
+
+// Quand un client se connecte, on le note dans la console
+io.sockets.on('connection', function (socket) {
+    console.log('Un client est connecté !');
+});
+
+server.listen(8080);
+```
+
+**Dans index.HtML**
+
+```HtML
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Socket.io</title>
+    </head>
+
+    <body>
+        <h1>Communication avec socket.io !</h1>
+
+        <!-- On fait récupérer au client le fichier socket.io.js automatiquement fourni par le serveur node.js via le module socket.io  -->
+        <script src="/socket.io/socket.io.js"></script>
+
+        <!-- On se connecte au serveur. Ici l'adresse du serveur est en local à l'adresse http://localhost:8080. Une fois le site en ligne, il faudra dapdapter ce chemin pour indiquer l'adresse du site (exl http://monsite.com)  -->
+        <script>
+            var socket = io.connect('http://localhost:8080');
+        </script>
+    </body>
+</html>
+
+```
+
+#### Premier cas de figure: le serveur veut envoyer un message au client
+
+**Dans app.js**
+
+```javaScript
+var http = require('http');
+var fs = require('fs');
+
+// Chargement du fichier index.html affiché au client
+var server = http.createServer(function(req, res) {
+    fs.readFile('./index.html', 'utf-8', function(error, content) {
+        res.writeHead(200, {"Content-Type": "text/html"});
+        res.end(content);
+    });
+});
+
+// Chargement de socket.io
+var io = require('socket.io').listen(server);
+
+// Quand un client se connecte, on le note dans la console
+io.sockets.on('connection', function (socket) {
+    console.log('Un client est connecté !');
+});
+
+// Le serveur envoie un message de type message au client dont le contenu est "Vous êtes bien connecté !"
+io.sockets.on('connection', function (socket) {
+        socket.emit('message', 'Vous êtes bien connecté !');
+});
+
+// Si vous voulez envoyer plusieurs données différentes avec votre message, regroupez-les sous forme d'objet comme ceci par exemple :
+// socket.emit('message', { content: 'Vous êtes bien connecté !', importance: '1' });
+
+server.listen(8080);
+```
+
+**Dans index.HtML**
+
+```HtML
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Socket.io</title>
+    </head>
+
+    <body>
+        <h1>Communication avec socket.io !</h1>
+
+        <!-- On fait récupérer au client le fichier socket.io.js automatiquement fourni par le serveur node.js via le module socket.io  -->
+        <script src="/socket.io/socket.io.js"></script>
+
+        <!-- On se connecte au serveur. Ici l'adresse du serveur est en local à l'adresse http://localhost:8080. Une fois le site en ligne, il faudra dapdapter ce chemin pour indiquer l'adresse du site (exl http://monsite.com)  -->
+        <script>
+            var socket = io.connect('http://localhost:8080');
+        </script>
+
+        <!-- On écoute les message de type "message" en provenance du serveur. Si on reçoit un message de type "message" on affiche dans une fenêtre d'alerte "Le serveur a un message pour vous : Vous êtes bien connecté ! ""(message défini dans la partie serveur) -->
+        <script>
+          var socket = io.connect('http://localhost:8080');
+          socket.on('message', function(message) {
+              alert('Le serveur a un message pour vous : ' + message);
+          })
+        </script>
+    </body>
+</html>
+```
+
+#### Deuxième cas de figure: le client veut envoyer un message au serveur via un bouton "Embêter le serveur"
+
+**Dans index.HtML**
+
+```HtML
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Socket.io</title>
+    </head>
+
+    <body>
+        <h1>Communication avec socket.io !</h1>
+
+        <!-- On intègre un bouton dans le code html pour envoyer message au serveur-->
+        <p><input type="button" value="Embêter le serveur" id="poke" /></p>
+
+        <!-- On fait récupérer au client le fichier socket.io.js automatiquement fourni par le serveur node.js via le module socket.io  -->
+        <script src="/socket.io/socket.io.js"></script>
+
+        <!-- On intègre la bibliothèque jquery pour gérer plus facilement l'évènement au clic sur le bouton "Embêter le serveur" -->
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+        <!-- On se connecte au serveur. Ici l'adresse du serveur est en local à l'adresse http://localhost:8080. Une fois le site en ligne, il faudra dapdapter ce chemin pour indiquer l'adresse du site (exl http://monsite.com)  -->
+        <!-- On écoute les message de type "message" en provenance du serveur. Si on reçoit un message de type "message" on affiche dans une fenêtre d'alerte "Le serveur a un message pour vous : Vous êtes bien connecté ! ""(message défini dans la partie serveur) -->
+        <script>
+          var socket = io.connect('http://localhost:8080');
+          socket.on('message', function(message) {
+              alert('Le serveur a un message pour vous : ' + message);
+          })
+
+          // Lorsque l'évènemnet click se produit sur le bouton (gérer avec Jquery), alors le client emet un message de type message à destination du serveur et dont le contenu est "Salut serveur, ça va?"
+          $('#poke').click(function () {
+               socket.emit('message', 'Salut serveur, ça va ?');
+           })
+        </script>
+    </body>
+</html>
+```
+
+**Dans app.js**
+
+```javaScript
+var http = require('http');
+var fs = require('fs');
+
+// Chargement du fichier index.html affiché au client
+var server = http.createServer(function(req, res) {
+    fs.readFile('./index.html', 'utf-8', function(error, content) {
+        res.writeHead(200, {"Content-Type": "text/html"});
+        res.end(content);
+    });
+});
+
+// Chargement de socket.io
+var io = require('socket.io').listen(server);
+
+// Quand un client se connecte, on le note dans la console
+io.sockets.on('connection', function (socket) {
+    console.log('Un client est connecté !');
+});
+
+// Le serveur envoie un message de type message au client dont le contenu est "Vous êtes bien connecté !"
+io.sockets.on('connection', function (socket) {
+        socket.emit('message', 'Vous êtes bien connecté !');
+
+        // Quand le serveur reçoit un signal de type "message" du client, il affiche dans la console "Un client me parle! Il me dit + contenu du message envoyé par le client c'est à dire "Salut serveur, ça va?   
+        socket.on('message', function (message) {
+          console.log('Un client me parle ! Il me dit : ' + message);
+        });
+});
+
+// Si vous voulez envoyer plusieurs données différentes avec votre message, regroupez-les sous forme d'objet comme ceci par exemple :
+// socket.emit('message', { content: 'Vous êtes bien connecté !', importance: '1' });
+
+server.listen(8080);
+```
+
+En résumé, une fois le serveur socket.io en plance, on emet des message avec la commende socket.emit (type de message, contenu du message) dans un fichier (serveur ou client) et on (ecoute) récupère  le message dans l'autre fichier (serveur ou client) avec la commande socket.on (type de message, contenu du message).
+
+### Communiquer avec plusieurs clients
+
+Un serveur Node.js peut communiquer avec plusieurs clients. Pour cela il doit être en mesure de :
+
+* D'envoyer des messages à tout le monde d'un seul coup **BROADCASTS**
+* De se souvenirs d'informations sur chaque client (ex: pseudo). Ces infos seront stockés dans des **Variables de session**
+
+#### Broadcaster un message à tous les autres clients
+
+```javaScript
+socket.broadcast.emit('message', 'Message à toutes les unités. Je répète, message à toutes les unités.');
+```
+Exemple
+
+```javaScript
+io.sockets.on('connection', function (socket) {
+	socket.emit('message', 'Vous êtes bien connecté !'); // envoi au client "Vous êtes bien connecté !"
+	socket.broadcast.emit('message', 'Un autre client vient de se connecter !');// envoie à tout les autres client "Un autre client vient de se connecter !" . Ouvrir plusieurs fenêtre de navigateurs à l'adresse http://localhost:8080/ pour simuler la connection de plusieurs clients au serveurs et tester le code
+
+	socket.on('message', function (message) { // receptionne le message envoyé par le client et l'affiche dans la console sous la forme de "Un client me parle! Il me dit: message transmis par le client (exemple: Salut serveur, ça va !)"
+		console.log('Un client me parle ! Il me dit : ' + message);
+	});
+});
+```
+
+#### Variable de session
+
+Pour reconnaitre les différents clients connectés en même temps, il faut pouvoir mémoriser des informations sur chaque client sous forme de variable de session. Par défaut socket.io ne propose pas cette fonctionnalité.
+
+Les variables de session doivent être gérées par une bibliothèque supplémentaire sous forme de middleware comme session.socket.io.
+
+Pour éviter de devoir comprendre comment utiliser un middleware de gestion de session, il existe une astuce qui consiste à enregister directement l'information sous la forme d'une variable dans l'objet <code>socket</code> de chaque client. C'est plus simple à mettre en place mais ce n'est pas la meilleure méthode, c'est juste une astuce pour tester rapidement. Il est préférable d'utiliser un middleware comme session.socket.io. Voir documentation: https://www.npmjs.com/package/session.socket.io
+
+Pour permettre au serveur de retenir des infos sur chaque client connecté sans que celui-ci doivent rappeler qui il est à chaque envoi de message, on va stocker un variable de sessioon coté serveur en utilisant le code suivant:
+
+```javaScript
+socket.mavariable = mavariable;
+```
+Dans cet exemple, on stocke les données sous forme de variable dans l'objet <code>socket</code>correspondant au client (il y a un objet socket en mémoire sur le serveur pour chaque client)
+
+Pour récupérer cette information par la suite, il suffira de demander ce que contient <code>socket.mavariable</code>
+
+```javascript
+console.log(socket.mavariable);
+```
+
+Lorsqu'un client se connecte, la page web va lui demnader son pseudo. Le serveur stockera le pseudo en variable de session pour s'en souvenir lorsque le client cliquera sur "Embêter le serveur". Le serveur indiquera alors dans la console à la place de "Un client me parle" , "Pseudoclient me parle"
+
+**Du coté client (index.html)**
+
+On va demander au chargement de la page de demander son pseudo au visiteur sous la forme d'une fenêtre prompt dans laquelle il pourra introduire son pseudo.
+Il faut définir le type de message envoyer avec socket.emit, ici le pseudo envoyé sera de type "petit_nouveau" pour le différencier du type "message"
+
+```HtML
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Socket.io</title>
+    </head>
+
+    <body>
+        <h1>Communication avec socket.io !</h1>
+
+        <p><input type="button" value="Embêter le serveur" id="poke" /></p>
+
+
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:8080');
+
+            // On demande le pseudo au visiteur...
+            var pseudo = prompt('Quel est votre pseudo ?');
+            // Et on l'envoie avec le signal "petit_nouveau" (pour le différencier de "message")
+            socket.emit('petit_nouveau', pseudo);
+
+            // On affiche une boîte de dialogue quand le serveur nous envoie un "message"
+            socket.on('message', function(message) {
+                alert('Le serveur a un message pour vous : ' + message);
+            })
+
+            // Lorsqu'on clique sur le bouton, on envoie un "message" au serveur
+            $('#poke').click(function () {
+                socket.emit('message', 'Salut serveur, ça va ?');
+            })
+        </script>
+    </body>
+</html>
+```
+
+**Du coté serveur (app.js)**
+
+Le serveur doit récupérer ce signal. Il écoute les signaux de type "petit_nouveau" et quand il en reçoit un, il sauvegarde le pseudo en variable de session.
+
+```javaScript
+var http = require('http');
+var fs = require('fs');
+
+// Chargement du fichier index.html affiché au client
+var server = http.createServer(function(req, res) {
+    fs.readFile('./index.html', 'utf-8', function(error, content) {
+        res.writeHead(200, {"Content-Type": "text/html"});
+        res.end(content);
+    });
+});
+
+// Chargement de socket.io
+var io = require('socket.io').listen(server);
+
+io.sockets.on('connection', function (socket, pseudo) {
+    // Quand un client se connecte, on lui envoie un message
+    socket.emit('message', 'Vous êtes bien connecté !');
+    // On signale aux autres clients qu'il y a un nouveau venu
+    socket.broadcast.emit('message', 'Un autre client vient de se connecter ! ');
+
+    // Dès qu'on nous donne un pseudo, on le stocke en variable de session
+    socket.on('petit_nouveau', function(pseudo) {
+        socket.pseudo = pseudo;
+    });
+
+    // Dès qu'on reçoit un "message" (clic sur le bouton), on le note dans la console
+    socket.on('message', function (message) {
+        // On récupère le pseudo de celui qui a cliqué dans les variables de session
+        console.log(socket.pseudo + ' me parle ! Il me dit : ' + message);
+    });
+});
+
+
+server.listen(8080);
+```
+
+## TP : le super chat
