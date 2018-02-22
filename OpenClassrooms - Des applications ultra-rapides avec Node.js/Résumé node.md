@@ -1829,3 +1829,55 @@ socket.on('petit_nouveau', function(pseudo) {
 ```
 
 ## TP : le super chat
+
+![Le super Chat](https://user.oc-static.com/files/422001_423000/422453.png)
+
+Pour ce Chat, nous allons ouvrir 2 fenêtre dans notre navigateur et nous connecté avec 2 pseudo différentents pour simuler le fonctionnement d'un chat réel entre 2 machines.
+
+* Je demande le pseudo avec une boîte de dialogue lors de la connexions
+* J'affiche le pseudo de celui qui vien tde se connecter à tout le mond edans le Chat (ex: "Gérard a rejoint le Chat")
+* Lorsque lo'n saisit un message, il est immédiatement affiché dans le navigateur sous le formulaire.
+
+### Besoin d'Aide
+
+Nous avons besoin de 3 fichiers:
+
+* index.html (client)
+* app.js (serveur)
+* package.json (carte d'identité de notre appli permettant d'installer toutes les dépendances d'un coup avec la commande npm install)
+
+#### package.JSON
+
+On commence par créer le fichier package.json avec la commande npm init en se placant dans le dossier de notre projets
+
+Pour réaliser le chat on va avoir besoin de 3 modules :
+* socket.io : (pour gérer la communication synchrone entre client et serveur). Documentation: https://www.npmjs.com/package/socket.io ou https://socket.io/
+
+* express (facultatif mais + pour la facilité la maintenance du code): pour faciliter la mise en forme. Pour utiliser express avec socket.io, veuillez consulter la documentation : https://socket.io/#how-to-use. Documentation: https://www.npmjs.com/package/express
+
+* ent (facultatif mais + pour la sécurité): qui est un tout petit module qui permet de protéger les chaines de caractères envoyées par les visiteurs pour transformer le HTML en entitiés. Cela permet d'éviter que les visiteurs s'envoient du code JavaScript dans le Chat. Documentation: https://www.npmjs.com/package/ent
+
+#### app.js (serveur)
+
+Ce fichier devra renvoyer une page web (index.html) à vos visiteurs lorsqu'il se connecte sur le site (lorsque l'on appellera le serveur)
+L'usage d'expresse rend la syntaxe légèrement différente mais aussi plus courte.
+
+En plus de la page web classique, le serveur Node.js devra gérer les évènements de socket.io. Il devra en gérer 2:
+
+* nouveau_client (vous l'appelez comme vous voulez): signale qu'un nouveau client vient de se connecter au Chat. Devrait transmettre son pseudo pour pouvoir informer les autres clients avec un message de type "Robert à rejoint le Chat!"
+
+* message: signale qu'un nouveau message a été posté. Le serveur aura pour rôle de redistribuer aux autres clients connectés un petit broadcast. On peut récupérer le pseudo du posteur dans une variable de session pour indiquer qui a envoyé le message.
+
+#### index.html
+
+On va commencer par créer un page html 5 basique, avec un titre h1, un formulaire composé d'un champ texte et d'un bouton, et une <div> ou une <section> qui contiendra les message du Chat (par défaut, elle sera vide)
+
+Le code javascript du client se placera en bas de page après l'html afin d'améliorer les performance. On peut aussi si on lee souhaite le placer dans un fichier.js externes
+
+Ce code javascript aura plusieurs rôles:
+
+* Se connecter à socket.io
+* Demander le pseudo du visiteur lorsu du chargement de la page (via un prompt()) et envoyer un signal "nouveau_client".
+* Gérer la réception de signaux de type "nouveau_client" envoyés par le serveur. Cela signifie qu'un nouveau client vient de se connecter. Afficher son nom dans un message (ex: robert a rejoint le Chat!)
+* Gérer la réception de signaux de type "message" envoyés par le serveur. Cela signifie qu'un autre client vient d'envoyer un message sur le Chat et donc qu'il faut l'afficher sur la page en regarde de son pseudo.
+* Gérer l'envoi du formulaire, lorsque le client veut envoyer un message aux autres personnes connectées. Il faudra récupérer le message saisi dans le formuliare en Javascript, émettre un signal de type "message" au serveur pour qu'il le distribue aux autres clients, et aussi insérer ce message dans votre propre prage. Eh oui, n'oubliez pas que le broadcast du serveur envoie un message à toutes les personnes connectées mais pas à vous même. Il faut donc mettre à jour votre propre zone de Chat.
