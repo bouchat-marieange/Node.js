@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <title>Super Chat temps réel !</title>
-        <!-- CSS directement dans head pour styliser la zone de Chat -->
+        <!-- CSS directement dans head pour styliser la zone de Chat et faire apparaitre le <strong>pseudo</strong> en blanc sur fond noir-->
         <style>
             #zone_chat strong {
                 color: white;
@@ -27,7 +27,7 @@
 
         </section>
 
-        <!-- On inclus le script de jquery pour facilité la création du bouton -->
+        <!-- On inclus le script de jquery dont on va se servir avec prepend pour insérer les message en début de Chat et val pour récupérer la valeur du message -->
         <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 
         <!-- On fait récupérer au client le fichier socket.io.js automatiquement fourni par le serveur node.js via le module socket.io (situé dans node_module après installation de socket.io).
@@ -41,27 +41,27 @@
 
             // On demande le pseudo, on l'envoie au serveur et on l'affiche dans le titre
             var pseudo = prompt('Quel est votre pseudo ?'); // On demande à l'utilisateur son pseudo dans une fenêtre prompt au moment où il se connecte
-            socket.emit('nouveau_client', pseudo); // On envoie le message de type "nouveau client" dont le contenu est pseudo au serveur
+            socket.emit('nouveau_client', pseudo); // On envoie le message de type "nouveau client" au serveur dont le contenu est le pseudo de l'utilisateur
             document.title = pseudo + ' - ' + document.title; // Lorsque l'on a récupérer le pseudo, on modifie le <title> de la page html pour que le pseudo de l'utilisateur s'affiche dans titre de l'onglet.(ex: mabo1 - Super Chat temps réel!)
 
-            // Quand on reçoit un message, on l'insère dans la page. On dit ce qui doit se passer quand on reçoit le message,on définit la fonction mais on ne l'applique pas, elle ne sera appliqué que lorsque l'on reçoit un message (fonction callback)
+            // On définit la fonction qui dit que quand on reçoit un message, on l'insère dans la page. Cette fonction sera appliquée et appelée uniquement lorsque l'on reçoit un message de type "message"(fonction callback)
             socket.on('message', function(data) {
-                // console.log(data) // En faisant un console.log(data) on peut voir qu'elle contient ceci: {pseudo: "mabo2", message: "bonjour"}
+                // console.log(data) // En faisant un console.log(data) on peut voir que data contient ceci: {pseudo: "mabo2", message: "bonjour"}
                 insereMessage(data.pseudo, data.message) //insereMessage: est une fonction qui affiche le contenu de notre message envoyé par formulaire sur notre page en plus de l'envoyer sur la page des autres utlisateurs connectés (broadcast).La fonction pour être appliquée plus tard aura besoin du pseudo et du contenu du message à afficher (c'est info sont récupérer dans un objet JSON que l'on récupère avec data.nomdelavariable).
             })
 
-            // Quand un nouveau client se connecte, on affiche l'information  (ex:mabo2 à rejoint le Chat! (affiché en italique <em>))
+            // Quand un nouveau client se connecte, on affiche l'information  (ex:mabo2 à rejoint le Chat! (affiché en italique <em>)) au début de la zone de Chat (prepend()) .La méthode prepend () de JQuery insère le contenu spécifié au début des éléments sélectionnés.
             socket.on('nouveau_client', function(pseudo) {
                 $('#zone_chat').prepend('<p><em>' + pseudo + ' a rejoint le Chat !</em></p>');
-            })// prepend signifie insérer un contenu spécifier en paramètre (ici : pseudo) au début de chaque élément. On veut que le pseudo de l'auteur soit affiché avant chacun de ses message pour en identifié l'auteur.
+            })
 
-            // Lorsqu'on envoie le formulaire, on transmet le message et on l'affiche sur la page. C'est à cet instant que l'on enclanche la fonction callback qui va récupéré le pseudo et le message et va les afficher sur la page.
+            // Lorsqu'on envoie le formulaire, on transmet le message au serveur qui va le broadcaster aux autre utlisateurs connecté et on l'affiche en plus sur notre page. C'est à cet instant que l'on enclanche la fonction callback qui va récupéré le pseudo et le message et va les afficher sur la page.
             $('#formulaire_chat').submit(function () {// $ est équivalent à mettre Jquery
                 var message = $('#message').val();// usage de Jquery pour récupéré la valeur du message
-                socket.emit('message', message); // Transmet le message de type "message" aux autres utilisateurs connectés
-                insereMessage(pseudo, message); // Affiche le message aussi sur notre page
+                socket.emit('message', message); // Transmet le message de type "message" au serveur qui va le broadcaster autres utilisateurs connectés
+                insereMessage(pseudo, message); // Affiche le message aussi sur notre propre page
                 $('#message').val('').focus(); // Vide la zone de Chat (vide la zone de formulaire pour qu'on puisse y écrire un autre message) et remet le focus dessus
-                return false; // Permet de bloquer l'envoi "classique" du formulaire. Ca permet de ne pas envoyé le traitement du formulaire sur une autre page mais de récupérer les valeur introduite dans le formulaire directement dans la même page.
+                return false; // Bloquer l'envoi "classique" du formulaire. Le return false est indispensable si on ne veut pas que la page se recharge suite à l'envoi du formulaire. En fait, return false est équivalent à la fonction de jQuery preventDefault().
             });
 
             // Ajoute un message dans la page (mise en forme pseudo texte blanc sur fond noir défini dans le header de la page index.html)
