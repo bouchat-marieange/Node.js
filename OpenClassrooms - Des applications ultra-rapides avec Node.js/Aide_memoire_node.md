@@ -1263,3 +1263,203 @@ server.listen(8080);
 ```
 
 ## TP : le super chat
+
+![Le super Chat](https://user.oc-static.com/files/422001_423000/422453.png)
+
+Pour ce Chat, nous allons ouvrir 2 fenêtre dans notre navigateur et nous connecté avec 2 pseudo différentents pour simuler le fonctionnement d'un chat réel entre 2 machines.
+
+* Je demande le pseudo avec une boîte de dialogue lors de la connexions
+* J'affiche le pseudo de celui qui vien tde se connecter à tout le mond edans le Chat (ex: "Gérard a rejoint le Chat")
+* Lorsque lo'n saisit un message, il est immédiatement affiché dans le navigateur sous le formulaire.
+
+### Besoin d'Aide
+
+Nous avons besoin de 3 fichiers:
+
+* index.html (client)
+* app.js (serveur)
+* package.json (carte d'identité de notre appli permettant d'installer toutes les dépendances d'un coup avec la commande npm install)
+
+#### package.JSON
+
+On commence par créer le fichier package.json avec la commande npm init en se placant dans le dossier de notre projets
+
+Pour réaliser le chat on va avoir besoin de 3 modules :
+* socket.io : (pour gérer la communication synchrone entre client et serveur). Documentation: https://www.npmjs.com/package/socket.io ou https://socket.io/
+
+* express (facultatif mais + pour la facilité la maintenance du code): pour faciliter la mise en forme. Pour utiliser express avec socket.io, veuillez consulter la documentation : https://socket.io/#how-to-use. Documentation: https://www.npmjs.com/package/express
+
+* ent (facultatif mais + pour la sécurité): qui est un tout petit module qui permet de protéger les chaines de caractères envoyées par les visiteurs pour transformer le HTML en entitiés. Cela permet d'éviter que les visiteurs s'envoient du code JavaScript dans le Chat. Documentation: https://www.npmjs.com/package/ent
+
+#### app.js (serveur)
+
+Ce fichier devra renvoyer une page web (index.html) à vos visiteurs lorsqu'il se connecte sur le site (lorsque l'on appellera le serveur)
+L'usage d'expresse rend la syntaxe légèrement différente mais aussi plus courte.
+
+En plus de la page web classique, le serveur Node.js devra gérer les évènements de socket.io. Il devra en gérer 2:
+
+* nouveau_client (vous l'appelez comme vous voulez): signale qu'un nouveau client vient de se connecter au Chat. Devrait transmettre son pseudo pour pouvoir informer les autres clients avec un message de type "Robert à rejoint le Chat!"
+
+* message: signale qu'un nouveau message a été posté. Le serveur aura pour rôle de redistribuer aux autres clients connectés un petit broadcast. On peut récupérer le pseudo du posteur dans une variable de session pour indiquer qui a envoyé le message.
+
+#### index.html
+
+On va commencer par créer un page html 5 basique, avec un titre h1, un formulaire composé d'un champ texte et d'un bouton, et une <div> ou une <section> qui contiendra les message du Chat (par défaut, elle sera vide)
+
+Le code javascript du client se placera en bas de page après l'html afin d'améliorer les performance. On peut aussi si on lee souhaite le placer dans un fichier.js externes
+
+Ce code javascript aura plusieurs rôles:
+
+* Se connecter à socket.io
+* Demander le pseudo du visiteur lorsu du chargement de la page (via un prompt()) et envoyer un signal "nouveau_client".
+* Gérer la réception de signaux de type "nouveau_client" envoyés par le serveur. Cela signifie qu'un nouveau client vient de se connecter. Afficher son nom dans un message (ex: robert a rejoint le Chat!)
+* Gérer la réception de signaux de type "message" envoyés par le serveur. Cela signifie qu'un autre client vient d'envoyer un message sur le Chat et donc qu'il faut l'afficher sur la page en regarde de son pseudo.
+* Gérer l'envoi du formulaire, lorsque le client veut envoyer un message aux autres personnes connectées. Il faudra récupérer le message saisi dans le formuliare en Javascript, émettre un signal de type "message" au serveur pour qu'il le distribue aux autres clients, et aussi insérer ce message dans votre propre prage. Eh oui, n'oubliez pas que le broadcast du serveur envoie un message à toutes les personnes connectées mais pas à vous même. Il faut donc mettre à jour votre propre zone de Chat.
+
+### Correction
+
+Le projet est constitué de 3 fichiers:
+
+* package.json: description du projet avec la liste des dépendances (express (facultatif), socket.io et ent (sécurité , équivalent htmlentities en PHP pour éviter que les clients ne s'envoie des code JavaScript malicieux)). Permet d'installer en une seule commande toutes les dépendances avec la commande npm install.
+* app.js : l'application Node.js côté serveur qui gère les interactions aec les différents clients.
+* index.html: la page web envoyée au client qui contient du code JavaScript pour gérer le Chat côté client.
+
+#### package.JSON
+
+```
+{
+    "name": "super-chat",
+    "version": "0.1.0",
+    "dependencies": {
+        "express": "~3.3.4",
+        "socket.io": "~1.2.1",
+        "ent": "~0.1.0"
+    },
+    "author": "Mateo21 <mateo21@email.com>",
+    "description": "Un super Chat temps réel avec socket.io"
+}
+```
+
+#### app.js
+
+```javaScript
+var app = require('express')(),
+    server = require('http').createServer(app),
+    io = require('socket.io').listen(server),
+    ent = require('ent'), // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
+    fs = require('fs');
+
+// Chargement de la page index.html
+app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/index.html');
+});
+
+io.sockets.on('connection', function (socket, pseudo) {
+    // Dès qu'on nous donne un pseudo, on le stocke en variable de session et on informe les autres personnes
+    socket.on('nouveau_client', function(pseudo) {
+        pseudo = ent.encode(pseudo);
+        socket.pseudo = pseudo;
+        socket.broadcast.emit('nouveau_client', pseudo);
+    });
+
+    // Dès qu'on reçoit un message, on récupère le pseudo de son auteur et on le transmet aux autres personnes
+    socket.on('message', function (message) {
+        message = ent.encode(message);
+        socket.broadcast.emit('message', {pseudo: socket.pseudo, message: message});
+    });
+});
+
+server.listen(8080);
+```
+Ce fichier commence par les appels au différents modules (express, http, socket.io en et fs)
+Ensuite on passe à la gestion des messages en temps réel avec socket.io, qui gèrent 2 type de message différents:
+
+* nouveau_client: envoyé par un nouveau client qui vient de charger la page et qui contient son pseudo en paramètre. On l'encode avec ent.encode par sécurité pour éviter l'envoi de code JavaScript malicieux dans le pseudo. Ensuite on sauvegarde le pseudo dans une variable de session.
+
+* message: envoyé par un client qui  veut transmettre un message aux autres personnes connectés. On l'encode avec ent.encode par sécurité spour retirer le JavaScript malicieux qu'il pourrait contenir) , et on le broadcas avec pseudo issu de la variable de session. POur envoyer plusieurs données dans un seul paramètre, on les encapsule dans un objet JavaScript, d'où le code <code>{pseudo: socket.pseudo, message: message}</code>
+
+#### index.HtML
+
+```HtML
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Super Chat temps réel !</title>
+        <style>
+            #zone_chat strong {
+                color: white;
+                background-color: black;
+                padding: 2px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Le super Chat temps réel !</h1>
+
+        <form action="/" method="post" id="formulaire_chat">
+            <input type="text" name="message" id="message" placeholder="Votre message..." size="50" autofocus />
+            <input type="submit" id="envoi_message" value="Envoyer" />
+        </form>
+
+        <section id="zone_chat">
+
+        </section>
+
+
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+
+            // Connexion à socket.io
+            var socket = io.connect('http://localhost:8080');
+
+            // On demande le pseudo, on l'envoie au serveur et on l'affiche dans le titre
+            var pseudo = prompt('Quel est votre pseudo ?');
+            socket.emit('nouveau_client', pseudo);
+            document.title = pseudo + ' - ' + document.title;
+
+            // Quand on reçoit un message, on l'insère dans la page
+            socket.on('message', function(data) {
+                insereMessage(data.pseudo, data.message)
+            })
+
+            // Quand un nouveau client se connecte, on affiche l'information
+            socket.on('nouveau_client', function(pseudo) {
+                $('#zone_chat').prepend('<p><em>' + pseudo + ' a rejoint le Chat !</em></p>');
+            })
+
+            // Lorsqu'on envoie le formulaire, on transmet le message et on l'affiche sur la page
+            $('#formulaire_chat').submit(function () {
+                var message = $('#message').val();
+                socket.emit('message', message); // Transmet le message aux autres
+                insereMessage(pseudo, message); // Affiche le message aussi sur notre page
+                $('#message').val('').focus(); // Vide la zone de Chat et remet le focus dessus
+                return false; // Permet de bloquer l'envoi "classique" du formulaire
+            });
+
+            // Ajoute un message dans la page
+            function insereMessage(pseudo, message) {
+                $('#zone_chat').prepend('<p><strong>' + pseudo + '</strong> ' + message + '</p>');
+            }
+        </script>
+    </body>
+</html>
+```
+
+On trouve dans le fichier index.html tout le nécessaire côté client pour gérer le Chat:
+
+* La connexion à socket.io
+
+* la demande de son pseudo au client et l'envoi au serveur via un signal de type "nouveau_client". Bonus: on affiche en plus le pseudo dans le <title> de la page (dans le titre de l'onglet du navigateur) afin qu'il apparaisse dans les onglets du navigateur. C'est plus pratique pour les tests lorsque l'on ouvre plusieurs onglets de voir quel onglet correspond à quel pseudo.
+
+* La récupération du signal "message" envoyé par le serveur. Dans ce cas, j'insère le message dans la zone #zone_chat de la page. On crée une fonction pour clea car on a aussi besoin de cette fonctionnalité au moment de l'envoi du formulaire (qui va également afficher un contenu dans la #zone_chat)
+
+* La récupération du signal "nouveau_client" où on affiche "XXX a rejoint le Chat !"
+
+* La gestion de l'envoi du formulaire. Il faut récupérer le message saisi par le client, l'envoyer au serveur et l'insérer dans notre page (car le serveur transmet le message à tout le monde... sauf à nous! et on veut que le message que l'on vient de poster s'affiche également dans notre flux de de Chat). On en profite aussi pour vider la zone de texte du formulaire et remettre le focus desssus et ... bloquer l'envoi "classique" du formulaire. Le <code>return false</code> est indispensable si on ne veut pas que la page se recharge suite à l'envoi du formulaire. En fait, <code>return false</code> est équivalent à la fonction de JQuery <code>preventDefault()</code>.
+
+* La fonction InsereMessage() qui rajoute le message qu'on lui envoie avec le pseudo dans la zone de Chat, au début (prepend())et non à la fin de la zone de Chat. La fonction prepend() fait partie de JQuery. La méthode prepend () insère le contenu spécifié au début des éléments sélectionnés.
+
+**Remarque:** Pour que le projet fonctionne, il ne faut pas oublier avant de lancer le code de faire un npm install pour installer toutes les dépendances.

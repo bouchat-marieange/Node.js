@@ -1,0 +1,12 @@
+{
+    "name": "ma-todolist-temps-reel",
+    "version": "0.1.0",
+    "dependencies": {
+        "express": "~4.11.0",
+        "ejs": "~2.1.4",
+        "cookie-session": "~1.1.0",
+        "body-parser": "~1.10.1"
+    },
+    "author": "Marie-Ange Bouchat <bouchat.marieange@gmail.com>",
+    "description": "Todolist en temps réel - TP dans le cadre du cours OpenClassrooms - Des applications ultra-arpides avec Node.js"
+}

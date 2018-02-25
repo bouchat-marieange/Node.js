@@ -1881,3 +1881,246 @@ Ce code javascript aura plusieurs rôles:
 * Gérer la réception de signaux de type "nouveau_client" envoyés par le serveur. Cela signifie qu'un nouveau client vient de se connecter. Afficher son nom dans un message (ex: robert a rejoint le Chat!)
 * Gérer la réception de signaux de type "message" envoyés par le serveur. Cela signifie qu'un autre client vient d'envoyer un message sur le Chat et donc qu'il faut l'afficher sur la page en regarde de son pseudo.
 * Gérer l'envoi du formulaire, lorsque le client veut envoyer un message aux autres personnes connectées. Il faudra récupérer le message saisi dans le formuliare en Javascript, émettre un signal de type "message" au serveur pour qu'il le distribue aux autres clients, et aussi insérer ce message dans votre propre prage. Eh oui, n'oubliez pas que le broadcast du serveur envoie un message à toutes les personnes connectées mais pas à vous même. Il faut donc mettre à jour votre propre zone de Chat.
+
+### Correction
+
+Le projet est constitué de 3 fichiers:
+
+* package.json: description du projet avec la liste des dépendances (express (facultatif), socket.io et ent (sécurité , équivalent htmlentities en PHP pour éviter que les clients ne s'envoie des code JavaScript malicieux)). Permet d'installer en une seule commande toutes les dépendances avec la commande npm install.
+* app.js : l'application Node.js côté serveur qui gère les interactions aec les différents clients.
+* index.html: la page web envoyée au client qui contient du code JavaScript pour gérer le Chat côté client.
+
+#### package.JSON
+
+```
+{
+    "name": "super-chat",
+    "version": "0.1.0",
+    "dependencies": {
+        "express": "~3.3.4",
+        "socket.io": "~1.2.1",
+        "ent": "~0.1.0"
+    },
+    "author": "Mateo21 <mateo21@email.com>",
+    "description": "Un super Chat temps réel avec socket.io"
+}
+```
+
+#### app.js
+
+```javaScript
+var app = require('express')(),
+    server = require('http').createServer(app),
+    io = require('socket.io').listen(server),
+    ent = require('ent'), // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
+    fs = require('fs');
+
+// Chargement de la page index.html
+app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/index.html');
+});
+
+io.sockets.on('connection', function (socket, pseudo) {
+    // Dès qu'on nous donne un pseudo, on le stocke en variable de session et on informe les autres personnes
+    socket.on('nouveau_client', function(pseudo) {
+        pseudo = ent.encode(pseudo);
+        socket.pseudo = pseudo;
+        socket.broadcast.emit('nouveau_client', pseudo);
+    });
+
+    // Dès qu'on reçoit un message, on récupère le pseudo de son auteur et on le transmet aux autres personnes
+    socket.on('message', function (message) {
+        message = ent.encode(message);
+        socket.broadcast.emit('message', {pseudo: socket.pseudo, message: message});
+    });
+});
+
+server.listen(8080);
+```
+Ce fichier commence par les appels au différents modules (express, http, socket.io en et fs)
+Ensuite on passe à la gestion des messages en temps réel avec socket.io, qui gèrent 2 type de message différents:
+
+* nouveau_client: envoyé par un nouveau client qui vient de charger la page et qui contient son pseudo en paramètre. On l'encode avec ent.encode par sécurité pour éviter l'envoi de code JavaScript malicieux dans le pseudo. Ensuite on sauvegarde le pseudo dans une variable de session.
+
+* message: envoyé par un client qui  veut transmettre un message aux autres personnes connectés. On l'encode avec ent.encode par sécurité spour retirer le JavaScript malicieux qu'il pourrait contenir) , et on le broadcas avec pseudo issu de la variable de session. POur envoyer plusieurs données dans un seul paramètre, on les encapsule dans un objet JavaScript, d'où le code <code>{pseudo: socket.pseudo, message: message}</code>
+
+#### index.HtML
+
+```HtML
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Super Chat temps réel !</title>
+        <style>
+            #zone_chat strong {
+                color: white;
+                background-color: black;
+                padding: 2px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Le super Chat temps réel !</h1>
+
+        <form action="/" method="post" id="formulaire_chat">
+            <input type="text" name="message" id="message" placeholder="Votre message..." size="50" autofocus />
+            <input type="submit" id="envoi_message" value="Envoyer" />
+        </form>
+
+        <section id="zone_chat">
+
+        </section>
+
+
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+
+            // Connexion à socket.io
+            var socket = io.connect('http://localhost:8080');
+
+            // On demande le pseudo, on l'envoie au serveur et on l'affiche dans le titre
+            var pseudo = prompt('Quel est votre pseudo ?');
+            socket.emit('nouveau_client', pseudo);
+            document.title = pseudo + ' - ' + document.title;
+
+            // Quand on reçoit un message, on l'insère dans la page
+            socket.on('message', function(data) {
+                insereMessage(data.pseudo, data.message)
+            })
+
+            // Quand un nouveau client se connecte, on affiche l'information
+            socket.on('nouveau_client', function(pseudo) {
+                $('#zone_chat').prepend('<p><em>' + pseudo + ' a rejoint le Chat !</em></p>');
+            })
+
+            // Lorsqu'on envoie le formulaire, on transmet le message et on l'affiche sur la page
+            $('#formulaire_chat').submit(function () {
+                var message = $('#message').val();
+                socket.emit('message', message); // Transmet le message aux autres
+                insereMessage(pseudo, message); // Affiche le message aussi sur notre page
+                $('#message').val('').focus(); // Vide la zone de Chat et remet le focus dessus
+                return false; // Permet de bloquer l'envoi "classique" du formulaire
+            });
+
+            // Ajoute un message dans la page
+            function insereMessage(pseudo, message) {
+                $('#zone_chat').prepend('<p><strong>' + pseudo + '</strong> ' + message + '</p>');
+            }
+        </script>
+    </body>
+</html>
+```
+
+On trouve dans le fichier index.html tout le nécessaire côté client pour gérer le Chat:
+
+* La connexion à socket.io
+
+* la demande de son pseudo au client et l'envoi au serveur via un signal de type "nouveau_client". Bonus: on affiche en plus le pseudo dans le <title> de la page (dans le titre de l'onglet du navigateur) afin qu'il apparaisse dans les onglets du navigateur. C'est plus pratique pour les tests lorsque l'on ouvre plusieurs onglets de voir quel onglet correspond à quel pseudo.
+
+* La récupération du signal "message" envoyé par le serveur. Dans ce cas, j'insère le message dans la zone #zone_chat de la page. On crée une fonction pour clea car on a aussi besoin de cette fonctionnalité au moment de l'envoi du formulaire (qui va également afficher un contenu dans la #zone_chat)
+
+* La récupération du signal "nouveau_client" où on affiche "XXX a rejoint le Chat !"
+
+* La gestion de l'envoi du formulaire. Il faut récupérer le message saisi par le client, l'envoyer au serveur et l'insérer dans notre page (car le serveur transmet le message à tout le monde... sauf à nous! et on veut que le message que l'on vient de poster s'affiche également dans notre flux de de Chat). On en profite aussi pour vider la zone de texte du formulaire et remettre le focus desssus et ... bloquer l'envoi "classique" du formulaire. Le <code>return false</code> est indispensable si on ne veut pas que la page se recharge suite à l'envoi du formulaire. En fait, <code>return false</code> est équivalent à la fonction de JQuery <code>preventDefault()</code>.
+
+* La fonction InsereMessage() qui rajoute le message qu'on lui envoie avec le pseudo dans la zone de Chat, au début (prepend())et non à la fin de la zone de Chat. La fonction prepend() fait partie de JQuery. La méthode prepend () insère le contenu spécifié au début des éléments sélectionnés.
+
+**Remarque:** Pour que le projet fonctionne, il ne faut pas oublier avant de lancer le code de faire un npm install pour installer toutes les dépendances.
+
+
+
+**Quiz 3**
+
+Votre score
+100%
+Bravo ! Vous avez réussi cet exercice !
+
+**Question 1**
+Avec quelle technologie le serveur peut-il spontanément envoyer un message à un client ?
+
+* WebSocket (x)
+* AJAX
+* HTML
+
+WebSocket est une nouvelle technologie qui permet une communication dans les deux sens entre le client et le serveur. Elle est utilisée par socket.io.
+
+**Question 2**
+Vrai ou faux ? Socket.io fonctionne aussi pour Internet Explorer 6.
+
+* Vrai (x)
+* Faux
+
+Oui, même IE6 est géré ! Dans ce cas, socket.io n'utilise pas WebSocket mais une autre technologie, moins pratique certes, qui a le mérite de fonctionner sous IE6.
+
+**Question 3**
+Quand un client envoie au serveur qui souhaite à son tour le communiquer à tous les autres clients connectés, on dit qu'il fait un :
+
+* Multithread
+* Multicasting
+* Broadcast (x)
+
+On parle de broadcast quand on envoie un message à tous les clients connectés.
+
+**Question 4**
+Comment s'appelle l'évènement envoyé par socket.io lorsqu'un nouveau client se connecte au serveur ?
+
+* connect
+* connection(x)
+* new
+
+Cet évènement nous permet de noter qu'un nouveau client vient de se connecter à l'application.
+
+**Question 5**
+Comment s'appelle l'évènement envoyé par un client qui souhaite transmettre une information après s'être connecté à socket.io ?
+
+* message
+* ding
+* information
+* On peut appeler son évènement comme on le souhaite (x)
+
+Vous êtes libres d'appeler vos évènements comme vous le souhaitez. "message" n'est qu'une possibilité parmi une infinité d'autres !
+
+## Node.js - Semaine 3 (TP)
+
+Nous avons vu ensemble dans ce cours sur Node.js comment réaliser une Todolist et comment échanger des messages en temps réel... mais nous n'avons jamais fait les deux en même temps !
+
+Je vous propose donc... (roulement de tambour)... de réaliser une Todolist partagée en temps réel !
+
+### Votre mission
+
+Vous allez reprendre le projet de Todolist que nous avions créée, et vous allez l'améliorer pour faire en sorte qu'elle puisse être utilisée par plusieurs personnes en même temps à l'aide de socket.io. Voici les fonctionnalités attendues :
+
+* Quand un client se connecte, il récupère la dernière Todolist connue du serveur
+* Quand un client ajoute une tâche, celle-ci est immédiatement répercutée chez les autres clients
+* Quand un client supprime une tâche, celle-ci est immédiatement supprimée chez les autres clients
+
+Le serveur pourra retenir la Todolist sous le forme d'un simple array qu'il gardera en mémoire. La persistence n'est pas demandée (inutile d'utiliser MySQL ou Mongodb ;o).
+
+L'utilisation d'Express.js est recommandée mais n'est pas obligatoire.
+
+### Fichiers à envoyer
+
+Vous devez renvoyer un fichier .zip contenant vos fichiers source (.js notamment) et un beau fichier package.json.
+
+Attention : n'envoyez pas le dossier node_modules. Ce sera à la personne qui vous corrigera de les récupérer avec un simple npm install. C'est comme ça que l'on distribue des projets Node.js. ;o)
+
+### Réalisation de l'exercice
+
+* Télécharger le fichier corrigé de l'exercice Todolist à cet endroit: https://course.oc-static.com/ftp-tutos/cours/nodejs/ma-todolist.zip
+
+* Créer un nouveau dossier appellé Todolist_tempsreel
+
+* Se positionner avec le terminal dans le nouveau dossier et y placer y dézipper le dossier de la correction de l'exercice todolist. Eliminer les fichiers superflus.
+
+* Modifier le fichier package.json pour qu'il corresponde au nouvel exercice
+
+* Faire un npm install pour que toutes les dépendances soient installées en une seule opération à partir du fichier package.JSON
+
+* Vérifier que la todolist fonctionne correctement avec la commande node app.js ou nodemon app.js (si nodemon est installé sur notre système pour éviter d'avoir à chaque fois rechargé la page), puis se rendre dans notre navigateur à l'adresse: http://localhost:8080/ pour tester toutes les fonctions de le todolist.
+
+* Ok les fonctions d'ajout de tâches via le formulaire fonctionnent, de retrait de tâches de la liste en cliquant sur la croix fonctionne également. Faire un git push pour garder un point de restauration du code à ce endroit avant d'entamer des modifications.
+
+* 
