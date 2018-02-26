@@ -22,7 +22,7 @@ app.get('/todo', function(req, res) {
     res.render('todo.ejs', {todolist: todolist});
 });
 
-// /* On utilise les sessions */
+/* On utilise les sessions */
 // app.use(session({secret: 'todotopsecret'}))
 
 
@@ -35,28 +35,39 @@ app.get('/todo', function(req, res) {
 //     next();
 // })
 
-  /* On ajoute un élément à la todolist */
-  app.post('/todo/ajouter/', urlencodedParser, function(req, res) {
-      if (req.body.newtodo != '') {
-          todolist.push(req.body.newtodo);
-      }
-      res.redirect('/todo');
-  })
+/* On ajoute un élément à la todolist */
+app.post('/todo/ajouter/', urlencodedParser, function(req, res) {
+    if (req.body.newtodo != '') {
+        todolist.push(req.body.newtodo);
+    }
+    res.redirect('/todo');
+})
 
-    /* Supprime un élément de la todolist */
-    app.get('/todo/supprimer/:id', function(req, res) {
-        if (req.params.id != '') {
-            todolist.splice(req.params.id, 1);
-        }
-        res.redirect('/todo');
-    })
+/* Supprime un élément de la todolist */
+app.get('/todo/supprimer/:id', function(req, res) {
+    if (req.params.id != '') {
+        todolist.splice(req.params.id, 1);
+    }
+    res.redirect('/todo');
+})
 
-    console.log(todolist[1]);
+/* On redirige vers la todolist si la page demandée n'est pas trouvée */
+app.use(function(req, res, next){
+    res.redirect('/todo');
+})
 
-    /* On redirige vers la todolist si la page demandée n'est pas trouvée */
-    app.use(function(req, res, next){
-        res.redirect('/todo');
-    })
+io.sockets.on('connection', function (socket, pseudo) { //connection à socket.io avec un paramètre de pseudo
+
+        // Dès qu'on nous donne un pseudo, on le stocke en variable de session et on informe les autres personnes
+        socket.on('nouveau_client', function(pseudo) {
+            pseudo = ent.encode(pseudo);// On utilise le module ent pour échapper tout les caractère html (on transforme ces caractère pour les rendre inoffensifs) du type < > etc... pour n'avoir qu'un contenu en pure texte
+            socket.pseudo = pseudo;// On sauvegarde le pseudo dans une variable de session
+            socket.broadcast.emit('nouveau_client', pseudo);// Le serveur envoi à tous les clients connectés un message de type nouveau_client qui contient le pseudo du client qui vient de se connecté (pseudo)
+        });
+
+
+
+});
 
 
 // // Quand un client se connecte, il récupère la dernière Todolist connue du serveur
@@ -85,10 +96,10 @@ app.get('/todo', function(req, res) {
 //
 
 
-  /* On redirige vers la todolist si la page demandée n'est pas trouvée */
-  app.use(function(req, res, next){
-      res.redirect('/todo');
-  })
+  // /* On redirige vers la todolist si la page demandée n'est pas trouvée */
+  // app.use(function(req, res, next){
+  //     res.redirect('/todo');
+  // })
 
 // });
 

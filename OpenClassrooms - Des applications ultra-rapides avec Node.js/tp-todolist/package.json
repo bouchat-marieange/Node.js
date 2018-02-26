@@ -7,9 +7,9 @@
         "favicon": "~0.0.2",
         "markdown": "~0.4.0",
         "serve-favicon" : "~2.4.5",
-	      "body-parser" : "~1.18.2",
-	      "cookie-session": "~2.0.0 - beta.3"
+	"body-parser" : "~1.18.2",
+	
     },
     "author": "Marie-Ange Bouchat <bouchat.marieange@gmail.com>",
-    "description" : "Un gestionnaire de todolist ultra basique réalisé dans le cadre d'un TP du couurs node.js de OpenClassrooms"
+    "description" : "Un gestionnaire de todolist ultra basique réalisé dans le cadre d'un TP du cours node.js de OpenClassrooms"
 }

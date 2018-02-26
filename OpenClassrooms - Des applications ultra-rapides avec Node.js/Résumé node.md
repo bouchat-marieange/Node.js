@@ -2123,4 +2123,19 @@ Attention : n'envoyez pas le dossier node_modules. Ce sera à la personne qui vo
 
 * Ok les fonctions d'ajout de tâches via le formulaire fonctionnent, de retrait de tâches de la liste en cliquant sur la croix fonctionne également. Faire un git push pour garder un point de restauration du code à ce endroit avant d'entamer des modifications.
 
+* On ajouter les extensions ent et socket.io avec la commande npm install ent --save et npm install socket.io --save (pour que ces 2 dépendances soient automatiquement ajoutée au fichier package.json). On va dans le fichier package.json et on ajoute un ~ devant les versions de ente et socket.io pour garantir la compatibilité de version en cas de mise à jour des dépendances.
+
+* On charge les différents modules nécessaires en veillant à les placer dans un ordre logique au début du fichier app.js
+
+```javascript
+var app = require('express')(); //Charge express . L'utilisation d'Express est recommandée mais n'est pas obligatoire.
+var server = require('http').createServer(app); // Création du serveur
+var io = require('socket.io').listen(server);// Charge de socket.io
+var session = require('cookie-session'); // Charge le middleware de sessions
+var bodyParser = require('body-parser'); // Charge le middleware de gestion des paramètres
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
+var ent = require('ent'); //Charge module ent pour éviter échange JavaScript malicieux en échappant caractère HTML (sécurité équivalente à htmlentities en PHP)
+var fs = require('fs'); // Charge module extension inclus dans la librairie nodejs (fs = file system). Permet de lire de façon asynchrone tout le contenu d'un fichier
+```
+
 * 
