@@ -7,13 +7,11 @@ var ent = require('ent'); //Charge module ent pour éviter échange JavaScript m
 
 //Définition des variables
 // Variable globale contenant un tableau reprenant toutes les tâches de la todolist
-var todolist = [];
-var index;
+var todolist = ['Faire la vaiselle','Faire la lessive'];
 
-
-
-// Définition des routes et des redirections
-/* On affiche la todolist et le formulaire avec express en récupérant la vue todo.ejs. On attribue le nom de todolist au contenu de la variable todolist (tableau)*/
+// Définition des routes et des redirections avec Express
+//On affiche la todolist et le formulaire avec express en récupérant la vue todo.ejs.
+// On attribue le nom de todolist au contenu de la variable todolist (tableau)
 app.get('/', function(req, res) {
     res.render('todo.ejs', {todolist: todolist});
 });
@@ -25,23 +23,24 @@ app.use(function(req, res, next){
 
 
 // Echanges serveur socket.io
+// On se connecte
 io.sockets.on('connection', function(socket) {
 
-    //On envoie tout de suite à l'utilisateur connecté la dernière version de la liste
-    socket.emit('listeActuelle', todolist);
+  //On envoie tout de suite aux utilisateurs connectés la dernière version de la liste
+  socket.emit('listeActuelle', todolist);
 
-    //Quand un utilisateur ajoute une tâche à la liste
-    socket.on('ajout', function(nouvelleTache) {
-        nouvelleTache = ent.encode(nouvelleTache);
-        todolist.push(nouvelleTache);
-        socket.broadcast.emit('ajout', {nouvelleTache: nouvelleTache});
-    });
+  //Quand un utilisateur ajoute une tâche à la liste
+  socket.on('ajout', function(nouvelleTache) {
+      nouvelleTache = ent.encode(nouvelleTache);
+      todolist.push(nouvelleTache);
+      socket.broadcast.emit('ajout', {nouvelleTache: nouvelleTache});
+  });
 
-    //Quand un utilisateur supprime une tâche de la liste
-    socket.on('suppression', function(index){
-        todolist.splice(index);
-        io.sockets.emit('listeACtuelle', todolist);
-    });
+  //Quand un utilisateur supprime une tâche de la liste
+  socket.on('suppression', function(index){
+      todolist.splice(index, 1);
+      io.sockets.emit('listeACtuelle', todolist);
+  });
 
 });
 
