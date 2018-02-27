@@ -1463,3 +1463,203 @@ On trouve dans le fichier index.html tout le nécessaire côté client pour gér
 * La fonction InsereMessage() qui rajoute le message qu'on lui envoie avec le pseudo dans la zone de Chat, au début (prepend())et non à la fin de la zone de Chat. La fonction prepend() fait partie de JQuery. La méthode prepend () insère le contenu spécifié au début des éléments sélectionnés.
 
 **Remarque:** Pour que le projet fonctionne, il ne faut pas oublier avant de lancer le code de faire un npm install pour installer toutes les dépendances.
+
+**Quiz 3**
+
+Votre score
+100%
+Bravo ! Vous avez réussi cet exercice !
+
+**Question 1**
+Avec quelle technologie le serveur peut-il spontanément envoyer un message à un client ?
+
+* WebSocket (x)
+* AJAX
+* HTML
+
+WebSocket est une nouvelle technologie qui permet une communication dans les deux sens entre le client et le serveur. Elle est utilisée par socket.io.
+
+**Question 2**
+Vrai ou faux ? Socket.io fonctionne aussi pour Internet Explorer 6.
+
+* Vrai (x)
+* Faux
+
+Oui, même IE6 est géré ! Dans ce cas, socket.io n'utilise pas WebSocket mais une autre technologie, moins pratique certes, qui a le mérite de fonctionner sous IE6.
+
+**Question 3**
+Quand un client envoie au serveur qui souhaite à son tour le communiquer à tous les autres clients connectés, on dit qu'il fait un :
+
+* Multithread
+* Multicasting
+* Broadcast (x)
+
+On parle de broadcast quand on envoie un message à tous les clients connectés.
+
+**Question 4**
+Comment s'appelle l'évènement envoyé par socket.io lorsqu'un nouveau client se connecte au serveur ?
+
+* connect
+* connection(x)
+* new
+
+Cet évènement nous permet de noter qu'un nouveau client vient de se connecter à l'application.
+
+**Question 5**
+Comment s'appelle l'évènement envoyé par un client qui souhaite transmettre une information après s'être connecté à socket.io ?
+
+* message
+* ding
+* information
+* On peut appeler son évènement comme on le souhaite (x)
+
+Vous êtes libres d'appeler vos évènements comme vous le souhaitez. "message" n'est qu'une possibilité parmi une infinité d'autres !
+
+
+
+## Node.js - Semaine 3 (TP)
+
+Nous avons vu ensemble dans ce cours sur Node.js comment réaliser une Todolist et comment échanger des messages en temps réel... mais nous n'avons jamais fait les deux en même temps !
+
+Je vous propose donc... (roulement de tambour)... de réaliser une Todolist partagée en temps réel !
+
+### Votre mission
+
+Vous allez reprendre le projet de Todolist que nous avions créée, et vous allez l'améliorer pour faire en sorte qu'elle puisse être utilisée par plusieurs personnes en même temps à l'aide de socket.io. Voici les fonctionnalités attendues :
+
+* Quand un client se connecte, il récupère la dernière Todolist connue du serveur
+* Quand un client ajoute une tâche, celle-ci est immédiatement répercutée chez les autres clients
+* Quand un client supprime une tâche, celle-ci est immédiatement supprimée chez les autres clients
+
+Le serveur pourra retenir la Todolist sous le forme d'un simple array qu'il gardera en mémoire. La persistence n'est pas demandée (inutile d'utiliser MySQL ou Mongodb ;o).
+
+L'utilisation d'Express.js est recommandée mais n'est pas obligatoire.
+
+### Fichiers à envoyer
+
+Vous devez renvoyer un fichier .zip contenant vos fichiers source (.js notamment) et un beau fichier package.json.
+
+Attention : n'envoyez pas le dossier node_modules. Ce sera à la personne qui vous corrigera de les récupérer avec un simple npm install. C'est comme ça que l'on distribue des projets Node.js. ;o)
+
+### Réalisation de l'exercice
+
+* Télécharger le fichier corrigé de l'exercice Todolist à cet endroit: https://course.oc-static.com/ftp-tutos/cours/nodejs/ma-todolist.zip
+
+* Créer un nouveau dossier appellé Todolist_tempsreel
+
+* Se positionner avec le terminal dans le nouveau dossier et y placer y dézipper le dossier de la correction de l'exercice todolist. Eliminer les fichiers superflus.
+
+* Modifier le fichier package.json pour qu'il corresponde au nouvel exercice
+
+* Faire un npm install pour que toutes les dépendances soient installées en une seule opération à partir du fichier package.JSON
+
+* Vérifier que la todolist fonctionne correctement avec la commande node app.js ou nodemon app.js (si nodemon est installé sur notre système pour éviter d'avoir à chaque fois rechargé la page), puis se rendre dans notre navigateur à l'adresse: http://localhost:8080/ pour tester toutes les fonctions de le todolist.
+
+* Ok les fonctions d'ajout de tâches via le formulaire fonctionnent, de retrait de tâches de la liste en cliquant sur la croix fonctionne également. Faire un git push pour garder un point de restauration du code à ce endroit avant d'entamer des modifications.
+
+* On ajouter les extensions ent et socket.io avec la commande npm install ent --save et npm install socket.io --save (pour que ces 2 dépendances soient automatiquement ajoutée au fichier package.json). On va dans le fichier package.json et on ajoute un ~ devant les versions de ente et socket.io pour garantir la compatibilité de version en cas de mise à jour des dépendances.
+
+* On charge les différents modules nécessaires en veillant à les placer dans un ordre logique au début du fichier app.js
+
+```javascript
+var app = require('express')(); //Charge express . L'utilisation d'Express est recommandée mais n'est pas obligatoire.
+var server = require('http').createServer(app); // Création du serveur
+var io = require('socket.io').listen(server);// Charge de socket.io
+var session = require('cookie-session'); // Charge le middleware de sessions
+var bodyParser = require('body-parser'); // Charge le middleware de gestion des paramètres
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
+var ent = require('ent'); //Charge module ent pour éviter échange JavaScript malicieux en échappant caractère HTML (sécurité équivalente à htmlentities en PHP)
+var fs = require('fs'); // Charge module extension inclus dans la librairie nodejs (fs = file system). Permet de lire de façon asynchrone tout le contenu d'un fichier
+```
+
+## Node.js en production : les erreurs à éviter
+
+Il est important de comprendre comment Node.js gère ses erreures afin de pouvoir les corriger avant que que votre serveur reçoive du trafic.
+
+### Node.js et la gestion d'erreures
+
+Toutes les exceptions JavaScript sont gérées comme des exceptions qui créent et lancent (throw) une erreur via le mécanisme JavaScript standard de *throw*. Ceux-ci sont gérés en utilisant la construction try/catch donnée par le langage JavaScript
+
+```javaScript
+// Lance une ReferenceError car z n'est pas défini
+try {
+var m = 1;
+var n = m + z;
+} catch (err) {
+// Gérer l'erreur ici
+}
+```
+Try représente la partie du code que l'on teste, que l'on essaie (try) et catch représente la partie du code chargé de gérer les erreurs si il s'en produit une dans la partie try. L'instruction try...catch regroupe des instructions à exécuter et définit une réponse si l'une de ces instructions provoque une exception. (https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Instructions/try...catch)
+
+```javaScript
+try {
+  eval('alert("Hello world)');
+}
+catch(error) {
+  console.log(error);
+  // expected output: SyntaxError: unterminated string literal
+  // Note - error messages will vary depending on browser
+}
+```
+Renverra le code suivant dans la consoleK
+
+```
+> SyntaxError: Invalid or unexpected token
+```
+
+Dans la construction try/catch, une erreur est lancée dans le programme et plus rien ne s'éxécute jusqu'à ce que l'erreur soit gérée par un catch. Donc si une erreur survient dans notre application Node.js et n'est pas gérée, l'application meurt et elle ne servira plus aucune requête avant d'être redémarrée!
+
+Voici un exemple qui contient un erreur (la variable visiteurs n'a pas été définie)
+
+```javaScript
+var http = require('http');
+
+var server = http.createServer(function(req, res) {
+  res.writeHead(200);
+  res.end('Salut tout le monde !');
+  visiteurs++;
+});
+
+server.listen(8080); // Démarre le serveur
+console.log("j'ecoute sur 8080");
+```
+Une fois le serveur lancé, aller sur localhost:8080. On peut voir s'afficher un "Salut tout le monde", mais si on rafraichit la page, on se rend compte que le serveur ne marche plus. Pour comprendre pourquoi il faut aller voir dans la console qui affiche ceci:
+
+```
+$ node app.js
+j'ecoute sur 8080
+/home/user/openclassrooms/example/app.js:6
+ visiteurs++;
+ ^
+
+ReferenceError: visiteurs is not defined
+ at Server.<anonymous> (/home/user/test/openclassrooms/example/app.js:6:3)
+ at emitTwo (events.js:106:13)
+ at Server.emit (events.js:191:7)
+ at parserOnIncoming (_http_server.js:562:12)
+ at HTTPParser.parserOnHeadersComplete (_http_common.js:99:23)
+```
+
+On peut voir dans la console que l'erreur provient du fait que la variable <code>visiteurs</code> n'est jamais définie et donc l'application va planter. En Node.js contrairement à PHP ou Ruby, si la moindre erreur survient et n'est pas gérée, l'application meurt et ne servira plus aucune requête avant d'être redémarrée!
+
+Le framework Express va récupérer les erreurs lancées dans les routes via son système de middleware et l'application restera en vie. Par contre, si une erreur survient en dehors des routes, elle ne sera pas gérée.
+
+Attention, pour éviter cette situation, il ne suffit pas de mettre un try/catch autour de tout son code pour que l'application ne s'arrête plus jamais. Cette méthode ne garantit pas l'état de votre application, car il se peut qu'elle ait crashé pour une raison légitime et dans ce cas, vous ne le saurez jamais (vous n'en serez pas avertit par le crash de l'appli), mais en plsu les nouvelles requêtes seront mal servies!
+
+La bonne pratique consiste à logger l'erreur quelque part (console.log) pour en avoir une trace, puis de redémarrer l'application. Cela permet de revoir les erreurs passées et de tenter de les reproduire, tout en assurant une bonne qualité de service.
+
+Exemple de logge de l'erreur:
+
+```javaScript
+try {
+  eval('alert("Hello world)');
+}
+catch(error) {
+  console.log(error);
+  // expected output: SyntaxError: unterminated string literal
+  // Note - error messages will vary depending on browser
+}
+```
+Pour cela, plusieurs solutions existent, tel que PM2 qui est un gestionnaire d'applications open source écrit en Node.js.
+
+## Gérer son application avec PM2

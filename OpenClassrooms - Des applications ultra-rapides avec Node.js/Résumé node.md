@@ -2083,6 +2083,8 @@ Comment s'appelle l'évènement envoyé par un client qui souhaite transmettre u
 
 Vous êtes libres d'appeler vos évènements comme vous le souhaitez. "message" n'est qu'une possibilité parmi une infinité d'autres !
 
+
+
 ## Node.js - Semaine 3 (TP)
 
 Nous avons vu ensemble dans ce cours sur Node.js comment réaliser une Todolist et comment échanger des messages en temps réel... mais nous n'avons jamais fait les deux en même temps !
@@ -2138,4 +2140,94 @@ var ent = require('ent'); //Charge module ent pour éviter échange JavaScript m
 var fs = require('fs'); // Charge module extension inclus dans la librairie nodejs (fs = file system). Permet de lire de façon asynchrone tout le contenu d'un fichier
 ```
 
-* 
+## Node.js en production : les erreurs à éviter
+
+Il est important de comprendre comment Node.js gère ses erreures afin de pouvoir les corriger avant que que votre serveur reçoive du trafic.
+
+### Node.js et la gestion d'erreures
+
+Toutes les exceptions JavaScript sont gérées comme des exceptions qui créent et lancent (throw) une erreur via le mécanisme JavaScript standard de *throw*. Ceux-ci sont gérés en utilisant la construction try/catch donnée par le langage JavaScript
+
+```javaScript
+// Lance une ReferenceError car z n'est pas défini
+try {
+var m = 1;
+var n = m + z;
+} catch (err) {
+// Gérer l'erreur ici
+}
+```
+Try représente la partie du code que l'on teste, que l'on essaie (try) et catch représente la partie du code chargé de gérer les erreurs si il s'en produit une dans la partie try. L'instruction try...catch regroupe des instructions à exécuter et définit une réponse si l'une de ces instructions provoque une exception. (https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Instructions/try...catch)
+
+```javaScript
+try {
+  eval('alert("Hello world)');
+}
+catch(error) {
+  console.log(error);
+  // expected output: SyntaxError: unterminated string literal
+  // Note - error messages will vary depending on browser
+}
+```
+Renverra le code suivant dans la consoleK
+
+```
+> SyntaxError: Invalid or unexpected token
+```
+
+Dans la construction try/catch, une erreur est lancée dans le programme et plus rien ne s'éxécute jusqu'à ce que l'erreur soit gérée par un catch. Donc si une erreur survient dans notre application Node.js et n'est pas gérée, l'application meurt et elle ne servira plus aucune requête avant d'être redémarrée!
+
+Voici un exemple qui contient un erreur (la variable visiteurs n'a pas été définie)
+
+```javaScript
+var http = require('http');
+
+var server = http.createServer(function(req, res) {
+  res.writeHead(200);
+  res.end('Salut tout le monde !');
+  visiteurs++;
+});
+
+server.listen(8080); // Démarre le serveur
+console.log("j'ecoute sur 8080");
+```
+Une fois le serveur lancé, aller sur localhost:8080. On peut voir s'afficher un "Salut tout le monde", mais si on rafraichit la page, on se rend compte que le serveur ne marche plus. Pour comprendre pourquoi il faut aller voir dans la console qui affiche ceci:
+
+```
+$ node app.js
+j'ecoute sur 8080
+/home/user/openclassrooms/example/app.js:6
+ visiteurs++;
+ ^
+
+ReferenceError: visiteurs is not defined
+ at Server.<anonymous> (/home/user/test/openclassrooms/example/app.js:6:3)
+ at emitTwo (events.js:106:13)
+ at Server.emit (events.js:191:7)
+ at parserOnIncoming (_http_server.js:562:12)
+ at HTTPParser.parserOnHeadersComplete (_http_common.js:99:23)
+```
+
+On peut voir dans la console que l'erreur provient du fait que la variable <code>visiteurs</code> n'est jamais définie et donc l'application va planter. En Node.js contrairement à PHP ou Ruby, si la moindre erreur survient et n'est pas gérée, l'application meurt et ne servira plus aucune requête avant d'être redémarrée!
+
+Le framework Express va récupérer les erreurs lancées dans les routes via son système de middleware et l'application restera en vie. Par contre, si une erreur survient en dehors des routes, elle ne sera pas gérée.
+
+Attention, pour éviter cette situation, il ne suffit pas de mettre un try/catch autour de tout son code pour que l'application ne s'arrête plus jamais. Cette méthode ne garantit pas l'état de votre application, car il se peut qu'elle ait crashé pour une raison légitime et dans ce cas, vous ne le saurez jamais (vous n'en serez pas avertit par le crash de l'appli), mais en plsu les nouvelles requêtes seront mal servies!
+
+La bonne pratique consiste à logger l'erreur quelque part (console.log) pour en avoir une trace, puis de redémarrer l'application. Cela permet de revoir les erreurs passées et de tenter de les reproduire, tout en assurant une bonne qualité de service.
+
+Exemple de logge de l'erreur:
+
+```javaScript
+try {
+  eval('alert("Hello world)');
+}
+catch(error) {
+  console.log(error);
+  // expected output: SyntaxError: unterminated string literal
+  // Note - error messages will vary depending on browser
+}
+```
+Pour cela, plusieurs solutions existent, tel que PM2 qui est un gestionnaire d'applications open source écrit en Node.js.
+
+## Gérer son application avec PM2

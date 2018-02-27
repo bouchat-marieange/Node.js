@@ -12,25 +12,27 @@
   </head>
 
   <body>
-    <h1>Ma todolist</h1>
+    <div class="container">
+      <h1>Ma todolist</h1>
 
-    <!-- La zone de todolist (au départ elle est vide et ne contient aucunes tâches)-->
-    <section id="zone_todolist">
+      <!-- La zone de todolist (au départ elle est vide et ne contient aucunes tâches)-->
+      <!-- <div id="todo"> -->
       <ul>
-        <% todolist.forEach(function(nouvelleTache, index){ %>
-        <li><a class="supression" href="todolist.ejs">✘</a> <%= nouvelleTache %> </li>
-        <% }); %>
+          <% todolist.forEach(function(nouvelleTache, index){ %>
+          <li><a class="supression" href="todolist.ejs">✘</a> <%= nouvelleTache %> </li>
+          <% }); %>
       </ul>
-    </section>
+      <!-- </div> -->
 
-    <!-- Le formulaire permettant d'ajouter des tâches à la todolist -->
-    <form action="/todo/ajouter/" method="post" id="addForm">
-        <p>
-            <label for="newtodo">Que dois-je faire ?</label>
-            <input type="text" name="newtodo" id="newtodo" autofocus />
-            <input type="submit" />
-        </p>
-    </form>
+      <!-- Le formulaire permettant d'ajouter des tâches à la todolist -->
+      <form action="/ajouter" method="post" id="addForm">
+          <p>
+              <label for="newtodo">Que dois-je faire ?</label>
+              <input type="text" name="newtodo" id="newtodo" autofocus />
+              <input type="submit" value="Envoyer" />
+          </p>
+      </form>
+    </div>
 
     <!-- On inclus la bibliothèque JQuey -->
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
@@ -43,38 +45,34 @@
       // Connexion à socket.io qui permet d'effectuer des actions du côté du client pour communique avec le serveur
       var socket = io.connect('http://localhost:8080');
 
-      // On affiche la liste des tâches avec un boucle foreach,lors de la première connection
-      socket.on('listeActuelle', function(todolist){
-        $('#todolist').empty(); //Rafraichir la liste
-        todolist.forEach(function(nouvelleTache, index){
-          insererTache(nouvelleTache, index);
-        });
-      });
+      // Afficher les tâches
+            socket.on('listeActuelle', function(todolist) {
+                $('#todolist').empty();
+                todolist.forEach(function(nouvelleTache, index) {
+                    insererTache(nouvelleTache, index);
+                });
+            });
 
-      // Ajout d'une nouvelle tâche par l'utilisateur via le formulaire
-      $('#addForm').submit(function(){
-          var nouvelleTache = $('newtodo').val();
-          socket.emit('ajout', nouvelleTache);
-          insererTache(nouvelleTache, index);
-          $('#tache').val('').focus();
-      });
+            // Quand l'utilisateur envoie avec le formulaire
+            $('#addForm').submit(function(){
+                var nouvelleTache = $('newtodo').val();
+                socket.emit('ajout', nouvelleTache);
+                insererTache(nouvelleTache, index);
+                $('#tache').val('').focus();
+            });
 
-      // Dès que la nouvelle tâche est dans le tableau todolist[], on l'affiche dans la liste
-      // On réceptionne la nouvelle tâche ajoutée à partir du serveur
-      socket.on('ajout', function(data) {
-          insererTache(data.nouvelleTache, data.index);
-      });
+            // Dès que la nouvelle tâche est dans le tableau todolist[], on l'affiche dans la liste
+            socket.on('ajout', function(data) {
+                insererTache(data.nouvelleTache, data.index);
+            });
+            function insererTache(nouvelleTache, index){
+                $('#todolist').append('<% todolist.forEach(function(nouvelleTache, index){ %><li><a class="supression" href="todolist.ejs">✘</a> <%= nouvelleTache %> </li><% }); %>');
+            }
 
-      // On réalise une boucle pour afficher la todolist comprenant la nouvelle tache ajoutée
-      function insererTache(nouvelleTache, index){
-          $('#todolist').append('<% todolist.forEach(function(nouvelleTache, index){ %><li><a class="supression" href="todolist.ejs">✘</a> <%= nouvelleTache %> </li><% }); %>');
-      }
-
-      // Supprimer une tâche
-      $('.suppression').on('click', function(){
-        socket.emit('suppression', $(this).data('index'));
-      });
-
+            // Supprimer une tâche
+            $('.suppression').on('click', function(){
+                socket.emit('suppression', $(this).data('index'));
+            });
     </script>
   </body>
 </html>
