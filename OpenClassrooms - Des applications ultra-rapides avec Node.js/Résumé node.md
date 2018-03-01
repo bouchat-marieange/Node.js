@@ -2125,20 +2125,568 @@ Attention : n'envoyez pas le dossier node_modules. Ce sera à la personne qui vo
 
 * Ok les fonctions d'ajout de tâches via le formulaire fonctionnent, de retrait de tâches de la liste en cliquant sur la croix fonctionne également. Faire un git push pour garder un point de restauration du code à ce endroit avant d'entamer des modifications.
 
-* On ajouter les extensions ent et socket.io avec la commande npm install ent --save et npm install socket.io --save (pour que ces 2 dépendances soient automatiquement ajoutée au fichier package.json). On va dans le fichier package.json et on ajoute un ~ devant les versions de ente et socket.io pour garantir la compatibilité de version en cas de mise à jour des dépendances.
+* On ajouter les extensions ent et socket.io avec la commande npm install ent --save et npm install socket.io --save (pour que ces 2 dépendances soient automatiquement ajoutée au fichier package.json). On va dans le fichier package.json et on ajoute un ~ devant les versions de ent et socket.io pour garantir la compatibilité de version en cas de mise à jour des dépendances.
 
 * On charge les différents modules nécessaires en veillant à les placer dans un ordre logique au début du fichier app.js
 
-```javascript
-var app = require('express')(); //Charge express . L'utilisation d'Express est recommandée mais n'est pas obligatoire.
-var server = require('http').createServer(app); // Création du serveur
-var io = require('socket.io').listen(server);// Charge de socket.io
-var session = require('cookie-session'); // Charge le middleware de sessions
-var bodyParser = require('body-parser'); // Charge le middleware de gestion des paramètres
-var urlencodedParser = bodyParser.urlencoded({ extended: false });
-var ent = require('ent'); //Charge module ent pour éviter échange JavaScript malicieux en échappant caractère HTML (sécurité équivalente à htmlentities en PHP)
-var fs = require('fs'); // Charge module extension inclus dans la librairie nodejs (fs = file system). Permet de lire de façon asynchrone tout le contenu d'un fichier
+* On établit les routes avec Expresse
+
+* On gère les échanges avec socket.io
+
+### Ma réalisation de l'exercice commenté
+
+Structure du projet sur 2 fichiers (app.js(serveur) et todo.ejs (placé dans un sous-dossier views)) + package.json
+Pour charger le projet faire un npm install pour installer automatiquement toutes les dépendances et le dossier node_modules grâce au informations contenue dans le fichier package.json
+Lancer ensuite l'application avec la commande node app.js ou nodemon app.js (si nodemon est installé sur votre système)
+
+Aller ensuite dans le navigateur et ouvrir plusieurs fênêtre à l'adresse localhost:8080 pour simuler plusieurs utilisateurs connectés simultanément au serveur qui peuvent charger la todolist et la modifier (ajouter et supprimer des tâches). Les modifications effectuées par un des utilisateurs connectés se repercutent automatiquement dans les fenêtres des autres utilisateurs connectés.
+
+**package.json**
+
+```json
+{
+    "name": "ma-todolist-temps-reel",
+    "version": "0.1.0",
+    "dependencies": {
+        "ejs": "~2.1.4",
+        "ent": "~2.2.0",
+        "express": "~4.11.0",
+        "socket.io": "~2.0.4"
+    },
+    "author": "Marie-Ange Bouchat",
+    "description": "Une todolist partagée entre plusieurs utilisateurs"
+}
 ```
+
+
+**app.js**
+
+```javascript
+// Chargement des différents modules
+var app = require('express')(); //Charge Express
+var server = require('http').createServer(app); // Création du serveur
+var io = require('socket.io').listen(server); // Charge de socket.io
+var ent = require('ent'); //Charge module ent pour éviter échange JavaScript malicieux en échappant caractère HTML (sécurité équivalente à htmlentities en PHP)
+
+// Définition des variables
+var todolist = []; // stockage de la todolist dans une variable coté serveur
+
+// Définition des routes et des redirections avec Express
+// Affichage de la todolist et du formulaire
+app.get('/todo', function(req, res) {
+  res.render('todo.ejs', {todolist: todolist});
+});
+
+// On redirige vers la todolist si la page demandée n'est pas trouvée
+app.use(function(req, res, next) {
+  res.redirect('/todo');
+});
+
+// Echanges serveur socket.io
+
+// On se connecte
+io.sockets.on('connection', function(socket) {
+
+  //On envoie la liste dès la connection d'un utilisateur
+  socket.emit('listeActuelle', todolist);
+
+  //Quand un utilisateur ajoute une tâche à la liste
+  socket.on('ajout', function(nouvelleTache) {
+    nouvelleTache = ent.encode(nouvelleTache); // On utilise ent pour sécurisé le texte entré par l'utilisateur
+    todolist.push(nouvelleTache); // On ajoute la nouvelle tâche au tableau(todolist) stocké sur le serveur
+    io.sockets.emit('listeActuelle', todolist); // On envoie la liste mise à jour à tous le monde (l'utilisateur qui a ajouter la tâche ainsi que tous les utilisateurs connectés)
+  });
+
+  //Quand un utilisateur supprime une tâche de la liste
+  socket.on('suppression', function(index) {
+    todolist.splice(index, 1); // On supprime de la todolist (tableau) la tâche correspondant à l'index grâce à la méthode splice
+    io.sockets.emit('listeActuelle', todolist); // On envoie la liste mise à jour avec la suppresion de l'élément à tous les utlisateurs (celui qui a effectuer la suppression et tous ceux qui sont connectés)
+  });
+
+});
+
+server.listen(8080); // On écoute le serveur sur le port 8080
+```
+
+**todo.ejs**
+
+```HtML
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Todolist en temps réel</title>
+  <style>
+    a {
+      text-decoration: none;
+      color: black;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Ma todolist</h1>
+
+    <ul id="taches">
+      <!-- La zone de todolist (au départ elle est vide et ne contient aucunes tâches)-->
+    </ul>
+
+    <!-- Le formulaire permettant d'ajouter des tâches à la todolist -->
+    <form action="/ajouter/" method="post" id="formulaire">
+      <p>
+        <label for="newtodo">Que dois-je faire ?</label>
+        <!--Le label du formulaire-->
+        <input type="text" name="newtodo" id="newtodo" autofocus />
+        <!--Le champ du formulaire-->
+        <input type="submit" value="Ajouter à la todolist" />
+        <!--Le bouton envoyer du formulaire-->
+      </p>
+    </form>
+
+    <!-- On inclus la bibliothèque JQuey -->
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+    <!-- On fait récupérer au client le fichier socket.io.js qui permet de gérer la communication avec le serveur du côté client -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      // Connexion à socket.io qui permet d'effectuer des actions du côté du client pour communique avec le serveur
+      var socket = io.connect('http://localhost:8080');
+
+      // Reception de mise à jour de la todolist (Affichage de la liste mise à jour)
+      socket.on('listeActuelle', function(todolistMiseAJour) {
+        $('#taches').empty(); // On vide la todolist si elle contient déja quelque chose
+        todolistMiseAJour.forEach(function(tache, index) { // tache (la valeur de l'élément du tableau en cours de traitement) - index (L'indice de l'élément du tableau en cours de traitement)
+          $('#taches').prepend('<li><a href="#" data-index="' + index + '" class="suppression">✘</a> ' + tache + '</li>'); // On affiche dans la zone de todolist , sous forme de liste à puces (<li>) en insèrant le contenu au début de la sélection (prepend) la dernière tâche ajoutée est placée au dessus de la liste, tout d'abord un lien (<a>)se présentant sous la forme d'une croix et contenant l'index lié à la tache (ce qui permettra en cliquant sur la croix de supprimer la tache qui y est associée). HTML5 permet d'associer des données directement dans un élément HTML à l'aide des attributs data-*. On s'en sert pour stocker des données, ici on s'en sert pour stocker l'index dans data-index ce qui permettra de récupérer facilement cet index lors de la phase de suppression avec data('index')  (https://www.alsacreations.com/article/lire/1397-html5-attribut-data-dataset.html). Les + qui entoure + index + serve pour la concaténation.
+        });
+      });
+
+      // Quand l'utilisateur ajoute une tache avec le formulaire
+      $('#formulaire').submit(function() {
+        var nouvelleTache = $('#newtodo').val(); // On stocke la nouvelle tâche en JQuery dans la variable nouvelleTache
+        socket.emit('ajout', nouvelleTache); // On transmet la nouvelle tâche aux autres utilisateurs connectés
+        $('#newtodo').val('').focus(); // On vide la zone de texte du formulaire (#newtodo) et on remet le focus desssus
+        return false; // Permet de bloquer l'envoi "classique" du formulaire
+      });
+
+      // Quand l'utilisateur supprime une tache en cliquant sur la croix en regard de celle-ci
+      $('body').on('click', '.suppression', function() { // Lorsque l'utilisateur clique sur la croix . Le . devant suppression fait référence à la classe suppression qui est ajouté à chaque élément lors de la boucle foreach d'affichage de la todolist
+        socket.emit('suppression', $(this).data('index')); //On supprime la tâche en regard de celle-ci en fonction de son index qui lui est associé
+      });
+    </script>
+
+</body>
+
+</html>
+```
+
+### La correction de l'exercice proposée par openclassrooms
+
+**package.json**
+
+```json
+{
+    "name": "ma-todolist",
+    "version": "0.1.0",
+    "dependencies": {
+        "express": "~3.2.1",
+        "ejs": "~0.8.3",
+        "socket.io": "~0.9.16"
+    },
+    "author": "Mateo21 <mateo21@email.com>",
+    "description": "Un gestionnaire de todolist ultra basique"
+}
+```
+
+**app.js**
+
+```javaScript
+var express = require('express');
+var app = express();
+var server = app.listen(8080);
+var io = require('socket.io').listen(server);
+
+var todolist = [];
+
+// On affiche la todolist et le formulaire
+app.get('/todo', function(req, res) {
+    res.render('todo.ejs');
+})
+.use(function(req, res, next){
+    res.redirect('/todo');
+});
+
+// On gère les échanges avec socket.io
+io.sockets.on('connection', function (socket) {
+    // Lorsqu'un client se connecte, on lui envoie la liste
+    socket.emit('miseajour', todolist);
+
+    // On reçoit un nouvel élément à ajouter
+    socket.on('ajouter', function (nomTodo) {
+        // On met à jour la todolist sur le serveur
+        todolist.push(nomTodo);
+
+        // On envoie la nouvelle todolist tout le monde
+        // io.sockets.emit envoie à *tout le monde* (broadcast n'aurait pas envoyé à l'émetteur d'origine)
+        io.sockets.emit('miseajour', todolist);
+    });
+
+    socket.on('supprimer', function (indexTodo) {
+        // On supprime l'élément sur la todolist du serveur
+        todolist.splice(indexTodo, 1);
+
+        // Mise à jour pour tout le monde
+        io.sockets.emit('miseajour', todolist);
+    });
+});
+
+```
+
+**todo.ejs**
+
+```html
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Notre todolist</title>
+        <style>
+            a {text-decoration: none; color: black;}
+        </style>
+    </head>
+
+    <body>
+        <h1>Notre todolist</h1>
+
+        <ul id="taches">
+        </ul>
+
+        <form action="/todo/ajouter/" method="post" id="formulaire_todolist">
+            <p>
+                <label for="newtodo">Que devez-vous faire ?</label>
+                <input type="text" name="newtodo" id="newtodo" autofocus />
+                <input type="submit" />
+            </p>
+        </form>
+
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:8080');
+
+            // On reçoit une demande de mise à jour de toute la todolist
+            socket.on('miseajour', function(nouvelleTodolist) {
+                $('#taches').empty();// On commence par vider la todolist si elle contient déja quelque chose
+                nouvelleTodolist.forEach(function(todo, index) { // todo (la valeur de l'élément du tableau en cours de traitement) - index (L'indice de l'élément du tableau en cours de traitement)
+                    $('#taches').prepend('<li><a href="#" data-index="' + index + '" class="supprimer">✘</a> ' + todo + '</li>');
+                });
+            });
+
+            // On veut supprimer une tâche
+            $('body').on('click', 'supprimer', function() {
+                socket.emit('supprimer', $(this).data('index'));
+            });
+
+            // On veut ajouter une tâche
+            $('#formulaire_todolist').submit(function() {
+                var nomTodo = $('#newtodo').val();
+                socket.emit('ajouter', nomTodo);
+                $('#newtodo').val('').focus();
+                return false;
+            });
+        </script>
+    </body>
+</html>
+```
+
+
+### La correction de l'exercice proposée par Kazdan 1994 (https://github.com/Kazdan1994/todoliste_websocket)  - incluant l'usage de bootstraap et avec un design plus recherché
+
+Structure du projet basée sur 4 fichiers
+
+**package.json**
+
+```json
+{
+	"name": "todoliste",
+	"version": "0.1.0",
+	"dependencies": {
+		"ent": "~2.2",
+		"socket.io": "~1.3",
+		"express": "~4.12"
+	},
+	"repository": {
+		"type": "",
+		"url": ""
+	},
+	"author": "",
+	"description": ""
+}
+```
+
+**app.js**
+
+```javaScript
+var express = require("express"),
+app         = express(),
+server      = require('http').createServer(app),
+io          = require("socket.io").listen(server),
+ent         = require("ent"),
+		// On initialise la todoliste à vide
+todo        = [];
+
+// On envoie la page html
+app.get("/", function(req, res){
+	res.sendFile(__dirname + "/views/todo.html");
+})
+.use(express.static("public"));
+
+// On utilise socket.io
+io.sockets.on("connection", function(socket){
+	// Envoi de la todoliste au client
+	socket.emit("todo", todo)
+	// Ajout de la nouvelle tache
+	.on("newTask", function(newTask){
+		todo.push(ent.encode(newTask));
+		socket.broadcast.emit("todo", todo);
+	})
+	// Suppression de la tache
+	.on("deleteTask", function(task){
+		var index = todo.indexOf(ent.encode(task));
+		todo.splice(index, 1);
+		socket.broadcast.emit("todo", todo);
+	});
+});
+
+server.listen(8080, function() {
+	console.log('Serveur d\351marr\351 sur le port : 8080');
+});
+```
+
+**todo.html (dans sous-dossier views)**
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Todolist</title>
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"/>
+	</head>
+	<body>
+	<div class="container">
+			<nav class="navbar navbar-inverse">
+				<p class="navbar-brand">Todoliste</p>
+			</nav>
+
+				<form id="todoForm">
+					<div class="form-group">
+						<div class="input-group">
+							<input type="text" class="form-control" id="tache" autofocus>
+
+							<div class="input-group-btn">
+								<button class="btn btn-primary"><span class="glyphicon glyphicon-edit"></span>  Ajouter</button>
+							</div>
+						</div>
+					</div>
+				</form>
+
+			<hr>
+				<div id="todo">
+
+				</div>
+
+	</div>
+<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/javascript/client.js"></script>
+</body>
+</html>
+```
+
+**client.js (dans sous-dossier public/javascript)**
+
+```javaScript
+/* On se connecte */
+var socket = io.connect("http://localhost:8080");
+
+// Mettre à jour la todoliste
+socket.on("todo", function(todo){
+	$("#todo").empty();
+	for(var i=0; i<todo.length; i++){
+		$("#todo").append("<div class=\"alert alert-info\"><p class=\"text-center\">"
+				+ todo[i]
+				+ "</p><p class=\"text-right\"><button class=\"btn btn-danger\"><span class=\"glyphicon glyphicon-trash\"></button></p></div>");
+	}
+});
+
+// Ajouter une tache
+$("#todoForm").submit(function(){
+	var tache = $("#tache").val();
+	socket.emit("newTask", tache);
+	$("#todo").append("<div class=\"alert alert-info\"><p class=\"text-center\">"
+			+ todo[i]
+			+ "</p><p class=\"text-right\"><button class=\"btn btn-danger\"><span class=\"glyphicon glyphicon-trash\"></button></p></div>");
+	$("#tache").val("").focus();
+	return false;
+});
+
+// Supprimer une tache
+$("#todo").on("click", "button", function(){
+
+	$(this).text("");
+	var task = $(this).closest("div").text();
+	socket.emit("deleteTask", task);
+	$(this).closest("div").remove();
+});
+```
+
+### La correction de l'exercice proposée par Kobal (autre elève OC) - incluant une demande de nom d'utilisateur et indiquant quelle tâche a été ajoutée par quel utilisateurs
+
+Structure du projet basée sur 4 fichiers - package.json - app.js (serveur) - index.html (dans sous-dossier views) - todolist.js (dans sous-dossier public/js)
+
+**package.json**
+
+```json
+{
+    "name": "my-todolist",
+    "version": "0.1.0",
+    "dependencies": {
+        "express": "~4.16.2",
+        "ent": "~2.2.0",
+        "socket.io": "~2.0.4"
+    },
+    "author": "kobal",
+    "description": "A very basic todo list manager"
+}
+```
+
+**app.js**
+
+```javaScript
+const PORT = process.env.PORT || 8080;
+
+var express = require('express'),
+    http = require('http'),
+    ent = require('ent'),
+    app = express(),
+    server = http.createServer(app),
+    socketio = require('socket.io').listen(server);
+
+var todolist = [],
+    index;     
+
+
+app.use(express.static('public'))
+
+.get('/todolist', function(request, response){
+    response.sendFile(__dirname + '/views/index.html');
+})
+
+.use(function(request, response, next){
+    response.redirect('/todolist');
+});
+
+
+socketio.sockets.on('connection', function(socket){
+    socket.emit('updateTask', todolist);
+
+    socket.on('new_client', function(username) {
+        username = ent.encode(username);
+        socket.username = username;
+    });
+
+    socket.on('addTask', function(task){
+       task = ent.encode(task) + ' added by ' + socket.username;
+       index = todolist.length;
+       todolist.push(task);
+
+       socket.broadcast.emit('addTask', {task:task, index:index});
+    });
+
+    socket.on('deleteTask', function(index){
+        todolist.splice(index, 1);
+
+        socketio.sockets.emit('updateTask', todolist);
+    });
+});
+
+server.listen(PORT);
+```
+
+**index.html (placé dans sous-dossier views)**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Real-time Todolist app</title>
+    </head>
+
+    <body>
+        <h1>Real-time Todolist app</h1>
+        <ul id="todolist"></ul>
+        <form action="/" method="post" id="todolistForm">
+            <label for="task">My next task?</label>
+            <input type="text" name="task" id="task" placeholder="Your next task..." autofocus required>
+            <button type="submit" id="sendTask">Submit</button>
+        </form>
+        <script src="http://code.jquery.com/jquery-1.12.2.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="js/todolist.js"></script>
+    </body>
+</html>
+```
+
+**todolist.js(placer dans un sous-dossier public/js)**
+
+```javascript
+var socket = io.connect(window.location.host);
+
+
+var username = prompt('What\'s your username?');
+socket.emit('new_client', username);
+document.title = username + ' - ' + document.title;
+
+socket.on('updateTask', function(todolist) {
+    $('#todolist').empty();
+    todolist.forEach(function(task, index) {
+        insertTask(task, index);
+    });
+});
+
+$('#todolistForm').submit(function (){
+    var task = $('#task').val();
+    socket.emit('addTask', task);
+    task += ' added by ' +username;
+    var index = $('#todolist li').length;
+    insertTask(task, index);
+    $('#task').val('').focus();
+    return false;
+});
+
+socket.on('addTask', function(data) {
+    insertTask(data.task, data.index);
+});
+
+function insertTask(task, index){
+    $('#todolist').append('<li><a class="delete" href="#" data-index="' + index + '">✘</a> ' + task  + '</li>');
+}
+
+$('body').on('click', '.delete', function()
+{
+    socket.emit('deleteTask', $(this).data('index'));
+});
+```
+
 
 ## Node.js en production : les erreurs à éviter
 
