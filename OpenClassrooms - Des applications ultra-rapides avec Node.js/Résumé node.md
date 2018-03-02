@@ -2779,3 +2779,243 @@ catch(error) {
 Pour cela, plusieurs solutions existent, tel que PM2 qui est un gestionnaire d'applications open source écrit en Node.js.
 
 ## Gérer son application avec PM2
+
+PM2 est un gestionnaire d'application (process manager) écrit entièrement en Node.js. Le code est open source et disponible sur GitHubt : https://github.com/Unitech/pm2 ainsi que la documentation complète : http://pm2.keymetrics.io/docs/usage/pm2-doc-single-page/.
+
+PM2 va nous permettre de garantir que notre application reste en vie et fournit tout un tas de fonctionnalités.
+
+### Prise en main
+
+**Installation**
+
+Il faut tout d'abord installer PM2 en global avec le terminal en tapant la commande
+
+```
+npm install pm2 -g
+```
+Pour lancer ensuite votre application Node.js,il faut écrire dans le terminal positionné dans le dossier de votre projet:
+
+```
+pm2 start app.js
+```
+![pm2start](https://user.oc-static.com/upload/2017/02/01/14859437428158_pm2start.png)
+
+Maintenant l'application sera automatiquement relancée en cas de crash! PM2 lance un daemon qui va interagir avec vos applications et s'assurer de leur fonctionnement.
+
+Un daemon est un processus qui tourne en arrière-plan. Chaque appel à pm2 depuis la console va vous permettre de vous connecter à pm2 et d'interagir avec lui.
+
+Dans le reste du cours, on va reprendre l'application app.js du premier chapitre pour tester les fonctionnalités de pm2.
+
+```javascript
+var http = require('http');
+
+var server = http.createServer(function(req, res) {
+  res.writeHead(200);
+  res.end('Salut tout le monde !');
+  visiteurs++;
+});
+
+server.listen(8080); // Démarre le serveur
+console.log("j'ecoute sur 8080");
+```
+
+Pour avoir des infos sur l'application que vous avez lancée, il suffit de faire:
+
+```
+pm2 ls
+```
+![pm2 ls](https://user.oc-static.com/upload/2017/02/01/14859436479892_ls.png)
+
+Examinons les différents élements de pm2 ls un par un
+
+**App name:** le nom avec lequel l'application est lancée. Pour utiliser un nom personnalisé, lancez PM avec l'option --nmae VOTRE_NOM
+
+**id :** Identifiant utlisé par PM pour identifier votre applications
+
+**mode: ** fork ou cluster. Le mode fork est la façon standard de lancer une application, plus d'infos sur le mode cluster dans le chapitre suivant!
+
+**pid :** le process id, utilisé par votre système d'exploitation pour identifier l'applications
+
+**status :** la statut de l'application. Elle peut être stoppée par PM via
+
+```
+pm2 stop app
+```
+
+et redémarrée via
+
+```
+pm2 restart app
+```
+**restart :** Le nombre de restarts actuel. Chaque fois que votre application est relancée, le compteur s'incrémente !
+
+**ultime : ** Le temps depuis lequel l'application fonctionner
+
+**cpu :** Consommation actuelle CPU de l'applications
+
+**mem :** Consommation actuelle de mémoire RAM de l'applications
+
+**watching :** Mode wathc On/Off. Plus d'infos un peu plus bas!
+
+ A ce stade, on ne voit plus les logs de son application. Les logs sont maintenant gérés par PM. Pour voir les sorties en temps réel ainsi que les 10 dernières lignes de log, il suffit de taper la commande
+
+ ```pm2 logs
+ pm2 logs
+ ```
+
+ ![pm2 logs](https://user.oc-static.com/upload/2017/02/01/14859452428411_pm2logs.png)
+
+On voit s'afficher notre <code>j'écoute sur 8080</code>. On peut aussi voir les logs du daemon pm2 qui va garder chaque start, stop ou restart d'une application.
+
+Pour quitter utiliser le raccourci clavier:  Ctrl + C
+
+Par défaut, les logs sont enregistrés dans un fichier de log qui a pour noms
+
+```
+~/.pm2/logs/<name>-<out/err>-<id>.log.
+```
+
+Pour accéder à ces fichiers qui sont cachés par défault. Aller dans le dossier "Home" de votre ordinateur, afficher les dossiers et fichiers cachés avec le raccourci Ctrl + H. Vous verrez apparaitre un dossier appeller .pm2 dans ce dossier vous en trouverez un autres appelé logs qui contiendra des fichiers reprenant vos fichiers logs pour pm2.
+
+Pour notre application d'exemple, j'aurai donc deux fichiers:
+
+ 1 fichier pour la sortie standard (c'est à dire les logs standard, ce qui s'est passé)
+```
+~/.pm2/logs/app-out-0.log
+```
+
+pour la sortie d'erreurs (c'est à dire les logs indiquant les erreurs et ce qui dysfonctionne)
+```
+~/.pm2/logs/app-err-0.log
+```
+
+### C'est parti pour le crash!
+
+Notre application tourne et écoute sur le port 8080. Rendez-vous sur l'application via le navigateur à l'adresse localhost:8080, puis lancé pm2 ls
+
+On constate qu'il y a eu un restart (indiquant que l'application a été automatiquement relancée par pm2 après un crash). On constate aussi qu'il y a un uptime de 3s. Ces 2 indices nous indique qu'il y a eu un problème. Pour en savoir plus, lançons la commande.
+
+```
+pm2 log
+```
+
+![pm2 log crash](https://user.oc-static.com/upload/2017/02/01/14859458327399_pm2logscrash.png)
+
+On optient toujours le les 10 dernières lignes de log (en bleu), mais en plus on obtient la sortie d'erreur (en rouge), bien rangée dans son fichier d'erreur. Au redémarrage, l'application à de nouveau écrit <code>j'écoute sur 8080</code> comme prévu et tout tourne.
+
+Si vous voulez tester la rapiditié du restart, n'hésitez pas à rafraichir la page plusieurs fois. Après chaque requête, l'application crashe (puisque la variable visiteurs n'est pas définie) et PM2 la relance. Et pourtant il n'y a pas de latence visible!
+
+### Développer avec PM
+
+PM2 dispose de deux outils particulièrement pratiques pour le développement: le mode **watch** et la commande <code>pm2 monit</code>
+
+#### Mode watch
+
+Le mode watch est activé en lançant une application via --watch. Dès la moindre modification de fichier dans le dossier actuel ou des sous-dossiers, PM va faire quitter l'application et la relancer avec les fichiers modifiés
+
+```
+pm2 start app.js --watch
+```
+Grâce au mode watch il suffit de laisser tourner PM, d'ouvrir votre éditeur favori et la moindre modification que vous enregistrerez sera répercutée instantanément dans votre page!
+
+#### pm2 monit
+
+Lançons la commandes
+
+```
+pm2 monit
+```
+Une fenêtre s'affiche avec les performances en temps réel de notre application directement dans la console.
+
+![pm2 monit](https://user.oc-static.com/upload/2017/02/16/14872554219863_pm2monit.png)
+
+Cette fenêtre est divisée en 4 ongles : la liste des applications lancées, les logs de ces applications, les stats de l'applications selectionnée et les paramètres de l'application.
+
+Pour quitter utiliser le raccourci clavier Ctrl + C
+
+Dans le chapitre suivant, nous allons nous servir de la petite soeur de cette commande <code>pm2 imonit</code>, pour observer la répartition de charge lors d'un stress test !
+
+Pour découvrir et tester d'autres commandes, taper <code>pm2 help</code> et lisez la documentation de pm2 : http://pm2.keymetrics.io/docs/usage/pm2-doc-single-page/
+
+
+## Optimiser son application
+
+Nous allons à présent plonger dans l'optimisation de votre applicatoin grâce au mode Cluster de Node.js et nous allons tenter de faire chauffer notre serveur via l'utilitaire artillery.
+
+Par conception , le moteur V8 de Node.js ne prend pas pleinement capacité des machines multi-coeur actuelles. (un coeur physique est un ensemble de circuits capables d'éxécuter des programmes de façon autonome).
+
+Pour pallier à cela, les développeurs Node.jsont prévus le modecluster. Grâce à lui, Node.js va lancer une application maitre (master) qui va ensuite lui-même créer des travailleurs (worker) et leur donner des ordres.
+
+PM2, implémente le système de cluster Node.js automatiquement  et peut l'utiliser pour votre application (inutile de changer le code nos applications). Pour lancer 4 instances de votre applicatioin, il suffit de faire:
+
+```
+pm2 start app.js -i 4
+```
+Pour lancer autant d'instances que vous avez de CPU, lancer la commande:
+
+```
+pm2 start app.js -i max
+```
+
+Voyons à quoi ressemble maintenant notre <code>pm2 ls</code>
+
+![pm2 ls cluster](https://user.oc-static.com/upload/2017/02/01/14859609742073_pm2lscluster.png)
+
+Vous voyez maintenant 4 processus, chacun avec un ID différent et sa propre gestion des ressources de l'ordinateur. Et au niveau des logs.
+
+![pm2 logs cluster](https://user.oc-static.com/upload/2017/02/01/14859650151544_pm2logscluster.png)
+
+Chacune des instances de l'application à bien envoyé son message. Et elles écoutent toutes le même port.
+
+### Stress - Testons tout ça !
+
+Comment pouvons-nous vérifier que les charges sont bien réparties? Nous allons utiliser le module Node.js appelé artillery (https://github.com/shoreditch-ops/artillery) qui va nous permettre d'ouvrir un grand nombre de connexions simultanées sur notre application. Elle va avoir chaud.
+
+#### Installation d'artillery
+
+```
+npm install artillery -g
+```
+
+Pour les besoin du test, j'ai corrigé l'application précédente:
+
+```javaScript
+var http = require('http');
+
+var server = http.createServer(function(req, res) {
+  res.writeHead(200);
+  res.end('Salut tout le monde !');
+});
+
+server.listen(8080); // Démarre le serveur
+console.log("j'ecoute sur 8080")
+```
+
+Voici la procédure à suivre: grâce à la commande <code>pm2 scale</code>, PM2 peut augmenter ou réduire le nombre d'instances déployées.
+
+Dans un premier temps, nous allons tester sur une seule instance: on va donc écrire la commande <code>pm2 scale app 1</code>
+
+Artillery possède un bon nombre d'options. Ici, nous allons simuler 100 nouveaux utilisateurs par seconde qui feront 20 requêtes chacun pendant un total de 10 secondes. Cela fait 20 000 requêtes en 10 secondes.
+
+```
+artillery quick -d 10 -r 100 -n 20 http://127.0.0.1:8080
+```
+Pour pouvoir suivre le déroulement en temps réel de la charge de votre application, lancez une nouvelle fenêtre de console et taper pm2 imonit. Vous devriez voir un résultat similaire à l'image ci-dessous:
+
+![single load](https://user.oc-static.com/upload/2017/02/01/14859770989109_asciicast.gif)
+
+Voici les logs finaux de notre application. Selon votre machine, la performance peut varier énormément:
+
+![artillery cluster 1](https://user.oc-static.com/upload/2017/02/01/14859661628913_artillerycluster1.png)
+
+Et maintenant, place à 4 instance <code>pm2 scale app 4</code> et on est parti pour relancer la commande artillery
+
+![pm2 monit load](https://user.oc-static.com/upload/2017/02/01/1485976725734_asciicast.gif)
+
+Chacune des instances reçoit une partie de la charge, et la répartitiion reste assez égale. Regardez les résultats du test:
+
+![artillery mode cluster 4 instances](https://user.oc-static.com/upload/2017/02/01/1485965995566_artillerycluster4.png)
+
+Le rapport d'artillery est assez complet, mais la statistique la plus importante est le **median**, la médiane du temps de requête. Elle permet de prévoir en combien de tmeps un nouveau client sera servi dans ces conditions de trafic. Et ici on passe de 1.2 ms sur une instance à 0.4 ms sur 4, soit trois fois plus rapide! Pas mal pur 2000 requêtes par seconde.
+
+Cette partie vous a permis de connaitre les notions nécessaires à l'opération d'un serveur Node.js en production, depuis les erreurs basiques à éviter jusqu'au benchmark (banc d'essai) d'une application simple ! Si vous avez trouvé cela intéressant, alors vous avez peut-être l'âme d'un DevOps (https://fr.wikipedia.org/wiki/Devops), un hybride entre développement et gestion opérationnelle qui s'occupe de problèmatiques de déploiement et d'optimisation d'applications.
