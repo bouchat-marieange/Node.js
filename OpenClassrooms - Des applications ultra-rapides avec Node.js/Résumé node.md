@@ -2404,6 +2404,58 @@ io.sockets.on('connection', function (socket) {
 </html>
 ```
 
+### Résultat et correction par autres élèves
+
+Résultats
+ Retour au cours
+
+Merci d'avoir envoyé votre exercice, celui-ci a bien été enregistré !
+
+Pour obtenir votre note, les deux conditions suivantes doivent d'abord être remplies :
+
+Etat	Condition	Que faire ?
+ 3 / 3 exercices notés	Vous devez noter 3 exercices d'autres élèves en respectant soigneusement le barème fourni.	C'est bon, vous avez fait votre part du travail ! :o)
+ 3 / 3 notes obtenues	3 élèves différents doivent avoir noté votre exercice pour que vous puissiez avoir votre note.	C'est bon, vous avez reçu vos notes ! :o)
+Votre note : 9 / 10
+
+Vous trouverez ci-dessous les notes que vos collègues vous ont attribuées pour cet exercice :
+
+Correction n°1
+Critère	Points
+Lisibilité du code	2 / 2
+Récupération de la liste à la connexion	1 / 2
+Ajout d'un élément à la liste	1 / 2
+Suppression d'un élément de la liste	1 / 2
+Fichier package.json	2 / 2
+Total	7 / 10
+Commentaires
+
+c'est très bien bon courage
+
+Correction n°2
+Critère	Points
+Lisibilité du code	2 / 2
+Récupération de la liste à la connexion	2 / 2
+Ajout d'un élément à la liste	2 / 2
+Suppression d'un élément de la liste	2 / 2
+Fichier package.json	2 / 2
+Total	10 / 10
+Commentaires
+
+beau travail
+
+Correction n°3
+Critère	Points
+Lisibilité du code	1 / 2
+Récupération de la liste à la connexion	2 / 2
+Ajout d'un élément à la liste	2 / 2
+Suppression d'un élément de la liste	2 / 2
+Fichier package.json	2 / 2
+Total	9 / 10
+Commentaires
+
+Juste pour le code, et les commentaires en particuliers, n'hésites pas à faire des retours à la ligne :).
+
 
 ### La correction de l'exercice proposée par Kazdan 1994 (https://github.com/Kazdan1994/todoliste_websocket)  - incluant l'usage de bootstraap et avec un design plus recherché
 
